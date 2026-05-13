@@ -3,11 +3,21 @@ use rocket::fs::{FileServer, relative};
 use rocket_dyn_templates::Template;
 
 mod pages;
+mod pages_edit;
+mod db;
 
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> _ {
+    let pool = db::init_db().await;
     rocket::build()
         .attach(Template::fairing())
-        .mount("/", routes![pages::index, pages::new_page])
+        .manage(pool)
+        .mount("/", routes![
+            pages::index,
+            pages::new_page
+        ])
+        .mount("/api", routes![
+            pages_edit::create_page
+        ])
         .mount("/static", FileServer::from(relative!("static")))
 }
