@@ -1,0 +1,60 @@
+form {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: auto 1fr auto;
+    gap: 20px;
+    max-width: 95vw; 
+    margin: 0 auto;
+    height: calc(100vh - 120px); 
+}
+
+#title-input {
+    grid-column: 1 / span 2;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    outline: none;
+}
+
+#content {
+    grid-column: 1;
+    grid-row: 2;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 15px;
+    border-radius: 8px;
+    resize: none;
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+}
+
+#preview {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    overflow-y: auto;
+}
+
+button[type="submit"] {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 15px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button[type="submit"]:hover {
+    filter: brightness(1.2);
+}
