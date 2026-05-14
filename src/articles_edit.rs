@@ -34,7 +34,7 @@ pub async fn create_page(
             error: "Too many text! Limits: 100 chars max for title and 10000 for content" 
         }));
     }
-    let result = sqlx::query("INSERT INTO pages (title, content) VALUES (?, ?)")
+    let result = sqlx::query("INSERT INTO articles (title, content) VALUES (?, ?)")
         .bind(title)
         .bind(content)
         .execute(&**pool)

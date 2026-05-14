@@ -3,7 +3,7 @@ use rocket::fs::{FileServer, relative};
 use rocket_dyn_templates::Template;
 
 mod pages;
-mod pages_edit;
+mod articles_edit;
 mod db;
 
 #[launch]
@@ -17,7 +17,7 @@ async fn rocket() -> _ {
             pages::new_page
         ])
         .mount("/api", routes![
-            pages_edit::create_page
+            articles_edit::create_page
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }

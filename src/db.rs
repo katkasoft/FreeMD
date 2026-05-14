@@ -15,7 +15,7 @@ pub async fn init_db() -> DbPool {
         .expect("Error while initialising database");
 
     sqlx::query(
-        "CREATE TABLE IF NOT EXISTS pages (
+        "CREATE TABLE IF NOT EXISTS articles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             content TEXT NOT NULL,
@@ -24,7 +24,7 @@ pub async fn init_db() -> DbPool {
     )
     .execute(&pool)
     .await
-    .expect("Error while creating pages table");
+    .expect("Error while creating articles table");
 
     pool
 }
