@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - FreeMD</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/article.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <header>
+        <div id="header-left">
+            <h1 id="header-title" onclick="window.location.href = '/'">FreeMD</h1>
+        </div>
+        <div id="header-right">
+            <input type="text" id="search" placeholder="Search...">
+            <button id="new" class="header-btn" onclick="window.location.href = '/new'">+</button>
+        </div>
+    </header>
+    <div id="article">
+        <h1 id="title">{{ title }}</h1>
+        <div id="content">{{ content }}</div>
+    </div>
+    <script>
+        const content = document.getElementById('content');
+        document.addEventListener("DOMContentLoaded", () => {
+            content.innerHTML = marked.parse(content.innerHTML);
+        });
+    </script>
+</body>
+</html>

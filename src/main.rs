@@ -5,6 +5,7 @@ use rocket_dyn_templates::Template;
 mod pages;
 mod articles_edit;
 mod db;
+mod articles_display;
 
 #[launch]
 async fn rocket() -> _ {
@@ -14,7 +15,8 @@ async fn rocket() -> _ {
         .manage(pool)
         .mount("/", routes![
             pages::index,
-            pages::new_page
+            pages::new_page,
+            articles_display::article,
         ])
         .mount("/api", routes![
             articles_edit::create_page
