@@ -13,10 +13,10 @@ pub struct Article {
 
 #[get("/")]
 pub async fn index(pool: &State<DbPool>) -> Template {
-    let rows = sqlx::query("SELECT id, title, content FROM articles")
+    let rows = sqlx::query("SELECT id, title, content FROM articles ORDER BY created_at DESC")
         .fetch_all(&**pool)
         .await
-        .expect("Ошибка при получении статей, ты криворукий");
+        .expect("Error while getting articles");
 
     let articles: Vec<Article> = rows
         .into_iter()
