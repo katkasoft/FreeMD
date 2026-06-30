@@ -9,6 +9,7 @@ dependencies = [
  "chrono",
  "rocket",
  "rocket_dyn_templates",
+ "serde",
  "sqlx",
  "tokio",
 ]
