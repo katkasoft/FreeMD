@@ -20,10 +20,18 @@ pub async fn index(pool: &State<DbPool>) -> Template {
 
     let articles: Vec<Article> = rows
         .into_iter()
-        .map(|row| Article {
-            id: row.get(0),
-            title: row.get(1),
-            content: row.get(2),
+        .map(|row| {
+            let full_content: String = row.get(2);
+            let preview = if full_content.len() > 100 {
+                full_content.chars().take(100).collect::<String>() + "..."
+            } else {
+                full_content
+            };
+            Article {
+                id: row.get(0),
+                title: row.get(1),
+                content: preview,
+            }
         })
         .collect();
 
