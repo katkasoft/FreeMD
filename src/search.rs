@@ -40,5 +40,5 @@ pub async fn search(q: String, pool: &State<DbPool>) -> Template {
             }
         })
         .collect();
-    Template::render("index", context! { rows: articles })
+    Template::render("index", context! { rows: articles, query: q })
 }
