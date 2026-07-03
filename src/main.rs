@@ -6,6 +6,7 @@ mod pages;
 mod articles_edit;
 mod db;
 mod articles_display;
+mod search;
 
 #[launch]
 async fn rocket() -> _ {
@@ -17,6 +18,7 @@ async fn rocket() -> _ {
             pages::index,
             pages::new_page,
             articles_display::article,
+            search::search,
         ])
         .mount("/api", routes![
             articles_edit::create_page

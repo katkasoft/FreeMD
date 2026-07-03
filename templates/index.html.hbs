@@ -26,5 +26,14 @@
             <p id="no-articles">No articles yet.</p>
         {{/each}}
     </div>
+    <script>
+        let search = document.getElementById('search');
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && search === document.activeElement && search.value.trim() != "") {
+                const encodedQuery = encodeURIComponent(search.value);
+                window.location.href = `/search?q=${encodedQuery}`;
+            }
+        });
+    </script>
 </body>
 </html>
