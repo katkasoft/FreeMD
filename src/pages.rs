@@ -40,5 +40,27 @@ pub async fn index(pool: &State<DbPool>) -> Template {
 
 #[get("/new")]
 pub fn new_page() -> Template {
-    Template::render("new", context! {})
+    Template::render("editor", context! {})
+}
+
+#[get("/edit?<id>")]
+pub async fn edit(id: i64, pool: &State<DbPool>) -> Template {
+    let row = sqlx::query("SELECT id, title, content FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_one(&**pool)
+        .await
+        .expect("Error when getting article");
+
+    let article = Article {
+        id: row.get("id"),
+        title: row.get("title"),
+        content: row.get("content"),
+    };
+
+    Template::render("editor", context! { 
+        edit: true, 
+        id: article.id, 
+        title: article.title, 
+        content: article.content 
+    })
 }

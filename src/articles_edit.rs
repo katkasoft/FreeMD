@@ -11,6 +11,13 @@ pub struct NewPage<'r> {
     pub content: &'r str,
 }
 
+// #[derive(FromForm)]
+// pub struct EditPage<'r> {
+//     pub title: &'r str,
+//     pub content: &'r str,
+//     pub id: i64
+// }
+
 #[derive(Responder)]
 pub enum CreatePageResponse {
     Template(Template),
@@ -25,12 +32,12 @@ pub async fn create_page(
     let title = page_form.title.trim();
     let content = page_form.content.trim();
     if title.is_empty() || content.is_empty() {
-        return CreatePageResponse::Template(Template::render("new", context! { 
+        return CreatePageResponse::Template(Template::render("editor", context! { 
             error: "Not all fields are filled in" 
         }));
     }
     if title.len() > 100 || content.len() > 10000 {
-        return CreatePageResponse::Template(Template::render("new", context! { 
+        return CreatePageResponse::Template(Template::render("editor", context! { 
             error: "Too many text! Limits: 100 chars max for title and 10000 for content" 
         }));
     }
@@ -42,9 +49,15 @@ pub async fn create_page(
     match result {
         Ok(_) => CreatePageResponse::Redirect(Redirect::to(uri!("/"))),
         Err(e) => {
-            CreatePageResponse::Template(Template::render("new", context! { 
+            CreatePageResponse::Template(Template::render("editor", context! { 
                 error: format!("Internal server error: {}", e) 
             }))
         }
     }
 }
+
+// #[post("/edit", data = "<edit_form>")]
+// pub async fn edit_page(
+//     edit_form: Form<EditPage<'_>>, 
+//     pool: &State<DbPool> 
+// ) -> CreatePageResponse  {}

@@ -33,6 +33,7 @@
     <script>
         const content = document.getElementById('content');
         const preview = document.getElementById('preview');
+        preview.innerHTML = marked.parse(content.value);
         content.addEventListener('input', () => {
             preview.innerHTML = marked.parse(content.value);
         });
