@@ -22,7 +22,8 @@ async fn rocket() -> _ {
             pages::edit
         ])
         .mount("/api", routes![
-            articles_edit::create_page
+            articles_edit::create_page,
+            articles_edit::edit_page
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }
