@@ -7,12 +7,38 @@
     border-radius: 12px;
 }
 
-#title {
-    font-size: 2.5rem;
-    color: var(--text);
+#article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid var(--border);
+}
+
+#title {
+    font-size: 2.5rem;
+    color: var(--text);
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+#edit-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#edit-btn:hover {
+    background: var(--border);
+    border-color: var(--accent);
 }
 
 #content {
