@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New page - FreeMD</title>
+    <title>
+        {{#if edit}}
+            Editing article - {{title}} - FreeMD
+        {{else}}
+            New page - FreeMD
+        {{/if}}
+    </title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/edit.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -14,9 +20,12 @@
             <h1 id="header-title" onclick="window.location.href = '/'">FreeMD</h1>
         </div>
     </header>
-    <form action="/api/new" method="POST">
-        <input type="text" name="title" id="title-input" placeholder="Title" required>
-        <textarea name="content" id="content" placeholder="Content (markdown)"></textarea>
+    <form action="{{#if edit}}/api/edit{{else}}/api/new{{/if}}" method="POST">
+        {{#if edit}}
+            <input type="hidden" name="id" value="{{id}}">
+        {{/if}}
+        <input type="text" name="title" id="title-input" placeholder="Title" value="{{#if title}}{{title}}{{/if}}" required>
+        <textarea name="content" id="content" placeholder="Content (markdown)">{{#if content}}{{content}}{{/if}}</textarea>
         <div id="preview" class="content"></div>
         <p id="error" style="color: red;">{{ error }}</p>
         <button type="submit">Submit</button>
