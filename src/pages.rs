@@ -64,3 +64,8 @@ pub async fn edit(id: i64, pool: &State<DbPool>) -> Template {
         content: article.content 
     })
 }
+
+#[get("/upload")]
+pub fn upload_page() -> Template {
+    Template::render("upload", context! {})
+}

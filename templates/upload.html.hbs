@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload file - FreeMD</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/upload.css">
+</head>
+<body>
+    <form action="/api/upload" method="post">
+        <h1 id="form-title">Upload file</h1>
+        <input type="file" name="upload" id="upload">
+        <button id="upload" type="submit">Submit</button>
+    </form>
+    {{#if link}}
+        <p id="link">Link for this file: {{link}}</p>
+    {{/if}}
+    {{#if error}}
+        <p id="error">{{error}}</p>
+    {{/if}}
+</body>
+</html>

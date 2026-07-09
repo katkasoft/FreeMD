@@ -19,7 +19,8 @@ async fn rocket() -> _ {
             pages::new_page,
             articles_display::article,
             search::search,
-            pages::edit
+            pages::edit,
+            pages::upload_page
         ])
         .mount("/api", routes![
             articles_edit::create_page,

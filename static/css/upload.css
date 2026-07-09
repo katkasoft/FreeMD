@@ -1,0 +1,93 @@
+form {
+    max-width: 600px;
+    margin: 40px auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#form-title {
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin: 0 0 10px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+#upload {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#upload:focus {
+    border-color: var(--accent);
+}
+
+button[type="submit"] {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: filter 0.2s;
+    width: 100%;
+}
+
+button[type="submit"]:hover {
+    filter: brightness(1.2);
+}
+
+button#upload {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: filter 0.2s;
+    width: 100%;
+}
+
+button#upload:hover {
+    filter: brightness(1.2);
+}
+
+#link {
+    max-width: 600px;
+    margin: 10px auto 0;
+    padding: 15px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--accent);
+    word-break: break-all;
+    text-align: center;
+}
+
+#error {
+    max-width: 600px;
+    margin: 10px auto 0;
+    padding: 15px 20px;
+    background: var(--surface);
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    color: var(--danger);
+    text-align: center;
+}
