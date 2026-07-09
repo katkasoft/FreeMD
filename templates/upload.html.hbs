@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="/static/css/upload.css">
 </head>
 <body>
-    <form action="/api/upload" method="post">
+    <form action="/api/upload" method="post" enctype="multipart/form-data">
         <h1 id="form-title">Upload file</h1>
-        <input type="file" name="upload" id="upload">
+        <input type="file" name="file" id="upload">
         <button id="upload" type="submit">Submit</button>
     </form>
     {{#if link}}
