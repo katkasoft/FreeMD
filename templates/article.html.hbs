@@ -21,19 +21,15 @@
     <div id="article">
         <div id="article-header">
             <h1 id="title">{{ title }}</h1>
-            <button id="edit-btn" onclick="edit()">Edit</button>
+            <button id="edit-btn">Edit</button>
         </div>
         <div id="content">{{ content }}</div>
+        <div class="vote-section">
+            <button class="vote-btn vote-up" aria-label="Upvote">▲</button>
+            <span class="vote-score" id="vote-score">0</span>
+            <button class="vote-btn vote-down" aria-label="Downvote">▼</button>
+        </div>
     </div>
-    <script>
-        const content = document.getElementById('content');
-        document.addEventListener("DOMContentLoaded", () => {
-            content.innerHTML = marked.parse(content.innerHTML);
-        });
-        function edit() {
-            const id = window.location.pathname.split('/').at(-1);
-            window.location.href = `/edit?id=${id}`
-        }
-    </script>
+    <script src="/static/js/article.js"></script>
 </body>
 </html>
