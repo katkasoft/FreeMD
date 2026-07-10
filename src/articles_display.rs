@@ -10,11 +10,12 @@ use rocket::http::Status;
 struct Article {
     title: String,
     content: String,
+    score: i32
 }
 
 #[get("/article/<id>")]
 pub async fn article(id: u32, pool: &State<DbPool>) -> Result<Template, Status> {
-    let result = sqlx::query_as::<_, Article>("SELECT title, content FROM articles WHERE id = ?")
+    let result = sqlx::query_as::<_, Article>("SELECT title, content, score FROM articles WHERE id = ?")
         .bind(id)
         .fetch_optional(pool.inner())
         .await;
@@ -22,7 +23,8 @@ pub async fn article(id: u32, pool: &State<DbPool>) -> Result<Template, Status> 
         Ok(Some(article)) => {
             Ok(Template::render("article", context! {
                 title: article.title,
-                content: article.content
+                content: article.content,
+                score: article.score
             }))
         }
         Ok(None) => {

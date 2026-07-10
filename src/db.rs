@@ -19,7 +19,8 @@ pub async fn init_db() -> DbPool {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             content TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            score INTEGER NOT NULL DEFAULT 0
         );"
     )
     .execute(&pool)

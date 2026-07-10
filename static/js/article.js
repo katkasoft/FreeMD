@@ -1,8 +1,8 @@
 let voted = false;
-let score = 0;
 const upvoteBtn = document.querySelector('.vote-up');
 const downvoteBtn = document.querySelector('.vote-down');
 const voteScore = document.getElementById('vote-score');
+let score = parseInt(voteScore.textContent);
 
 const content = document.getElementById('content');
 document.addEventListener("DOMContentLoaded", () => {
