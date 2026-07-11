@@ -5,6 +5,29 @@ const voteScore = document.getElementById('vote-score');
 let score = parseInt(voteScore.textContent);
 const id = window.location.pathname.split('/').at(-1);
 
+function getVotedArticles() {
+    try {
+        const data = document.cookie.split('; ').find(row => row.startsWith('voted_articles='));
+        if (data) {
+            const json = decodeURIComponent(data.split('=')[1]);
+            return JSON.parse(json);
+        }
+    } catch (e) {
+        console.error('Cookie error:', e);
+    }
+    return {};
+}
+
+function saveVotedArticle(articleId, option) {
+    try {
+        let voted = getVotedArticles();
+        voted[articleId] = option;
+        document.cookie = `voted_articles=${encodeURIComponent(JSON.stringify(voted))}; path=/; max-age=31536000`;
+    } catch (e) {
+        console.error('Not saved:', e);
+    }
+}
+
 const content = document.getElementById('content');
 document.addEventListener("DOMContentLoaded", () => {
     content.innerHTML = marked.parse(content.innerHTML);
@@ -16,6 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function vote(option) {
+    const votedArticles = getVotedArticles();
+    if (votedArticles[id]) return;
     if (voted) return;
     if (option === 'up') {
         upvoteBtn.classList.add('active');
@@ -48,6 +73,7 @@ function vote(option) {
             voteScore.textContent = data.score;
             score = data.score;
         }
+        saveVotedArticle(id, option);
     })
     .catch(error => {
         console.error('Error: ', error);
