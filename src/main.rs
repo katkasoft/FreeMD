@@ -8,6 +8,7 @@ mod db;
 mod articles_display;
 mod search;
 mod upload;
+mod articles_opinion;
 
 #[launch]
 async fn rocket() -> _ {
@@ -26,7 +27,8 @@ async fn rocket() -> _ {
         .mount("/api", routes![
             articles_edit::create_page,
             articles_edit::edit_page,
-            upload::upload
+            upload::upload,
+            articles_opinion::vote,
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }
