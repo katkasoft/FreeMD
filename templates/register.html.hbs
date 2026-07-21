@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - FreeMD</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body>
+    <header>
+        <div id="header-left">
+            <h1 id="header-title" onclick="window.location.href = '/'">FreeMD</h1>
+        </div>
+    </header>
+    <form action="/api/register" method="post">
+        <h1>Register</h1>
+        <input type="text" name="username" id="username" class="form-input" placeholder="Username">
+        <input type="password" name="password" id="password" class="form-input" placeholder="Password">
+        <input type="password" name="confirm" id="confirm" class="form-input" placeholder="Confirm password">
+        <button type="submit">Submit</button>
+        {{#if error}}
+            <p id="error">{{error}}</p>
+        {{/if}}
+    </form>
+</body>
+</html>

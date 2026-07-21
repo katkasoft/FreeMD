@@ -69,3 +69,13 @@ pub async fn edit(id: i64, pool: &State<DbPool>) -> Template {
 pub fn upload_page() -> Template {
     Template::render("upload", context! {})
 }
+
+#[get("/login")]
+pub fn login_page() -> Template {
+    Template::render("login", context! {})
+}
+
+#[get("/register")]
+pub fn register_page() -> Template {
+    Template::render("register", context! {})
+}
