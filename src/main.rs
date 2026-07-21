@@ -9,6 +9,8 @@ mod articles_display;
 mod search;
 mod upload;
 mod articles_opinion;
+mod auth;
+pub mod user;
 
 #[launch]
 async fn rocket() -> _ {
@@ -31,6 +33,7 @@ async fn rocket() -> _ {
             articles_edit::edit_page,
             upload::upload,
             articles_opinion::vote,
+            auth::register
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }
