@@ -33,7 +33,8 @@ async fn rocket() -> _ {
             articles_edit::edit_page,
             upload::upload,
             articles_opinion::vote,
-            auth::register
+            auth::register,
+            auth::login
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }

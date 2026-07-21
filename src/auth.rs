@@ -5,6 +5,7 @@ use rocket_dyn_templates::{Template, context};
 use rocket::State;
 use crate::db::DbPool;
 use rocket::http::{Cookie, CookieJar};
+use sqlx::Row;
 use argon2::{
     password_hash::{
         rand_core::OsRng,
@@ -112,4 +113,48 @@ pub async fn register(
             }))
         }
     }
+}
+
+#[post("/login", data="<login_form>")]
+pub async fn login(
+    login_form: Form<Login<'_>>, 
+    pool: &State<DbPool>,
+    cookies: &CookieJar<'_>
+) -> Response {
+    let username = login_form.username;
+    let password = login_form.password;
+    if username.is_empty() || password.is_empty() {
+        return Response::Template(Template::render("login", context! {
+            error: "Not all fields are filled in"
+        }));
+    }
+    let row = sqlx::query("SELECT id, password FROM users WHERE username = ?")
+        .bind(username)
+        .fetch_optional(&**pool)
+        .await;
+    let user_row = match row {
+        Ok(Some(r)) => r,
+        Ok(None) => {
+            return Response::Template(Template::render("login", context! {
+                error: "Invalid username or password"
+            }));
+        }
+        Err(_) => {
+            return Response::Template(Template::render("login", context! {
+                error: "Internal server error"
+            }));
+        }
+    };
+    let id: i64 = user_row.get("id");
+    let db_password_hash: String = user_row.get("password");
+    if !verify_password(password, &db_password_hash) {
+        return Response::Template(Template::render("login", context! {
+            error: "Incorrect password"
+        }));
+    }
+    cookies.add_private(Cookie::build(("user_id", id.to_string()))
+        .path("/")
+        .same_site(rocket::http::SameSite::Lax)
+        .build());
+    Response::Redirect(Redirect::to(uri!("/")))
 }
