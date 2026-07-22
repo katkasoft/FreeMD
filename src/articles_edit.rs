@@ -5,6 +5,7 @@ use rocket_dyn_templates::{Template, context};
 use rocket::State;
 use crate::db::DbPool;
 use crate::user::AuthenticatedUser;
+use sqlx::Row;
 
 #[derive(FromForm)]
 pub struct NewPage<'r> {
@@ -29,7 +30,7 @@ pub enum CreatePageResponse {
 pub async fn create_page(
     page_form: Form<NewPage<'_>>, 
     pool: &State<DbPool>,
-    _user: AuthenticatedUser
+    user: AuthenticatedUser
 ) -> CreatePageResponse {
     let title = page_form.title.trim();
     let content = page_form.content.trim();
@@ -43,9 +44,21 @@ pub async fn create_page(
             error: "Too many text! Limits: 100 chars max for title and 10000 for content" 
         }));
     }
-    let result = sqlx::query("INSERT INTO articles (title, content) VALUES (?, ?)")
+    let id: i64 = user.id;
+    let user_row = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await;
+    let username: String = match user_row {
+        Ok(Some(row)) => row.get("username"),
+        _ => return CreatePageResponse::Template(Template::render("editor", context! {
+            error: "Internal server error"
+        })),
+    };
+    let result = sqlx::query("INSERT INTO articles (title, content, author) VALUES (?, ?, ?)")
         .bind(title)
         .bind(content)
+        .bind(&username)
         .execute(&**pool)
         .await;
     match result {

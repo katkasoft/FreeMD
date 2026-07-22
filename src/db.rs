@@ -20,7 +20,8 @@ pub async fn init_db() -> DbPool {
             title TEXT NOT NULL,
             content TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            score INTEGER NOT NULL DEFAULT 0
+            score INTEGER NOT NULL DEFAULT 0,
+            author TEXT NOT NULL
         );"
     )
     .execute(&pool)
