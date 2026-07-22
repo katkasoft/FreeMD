@@ -4,6 +4,7 @@ use rocket_dyn_templates::{Template, context};
 use sqlx::FromRow;
 use crate::db::DbPool;
 use rocket::http::Status;
+use rocket::http::CookieJar;
 
 #[derive(Serialize, FromRow)]
 #[serde(crate = "rocket::serde")]
@@ -14,17 +15,19 @@ struct Article {
 }
 
 #[get("/article/<id>")]
-pub async fn article(id: u32, pool: &State<DbPool>) -> Result<Template, Status> {
+pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
     let result = sqlx::query_as::<_, Article>("SELECT title, content, score FROM articles WHERE id = ?")
         .bind(id)
         .fetch_optional(pool.inner())
         .await;
     match result {
         Ok(Some(article)) => {
+            let login = cookies.get_private("user_id").is_some();
             Ok(Template::render("article", context! {
                 title: article.title,
                 content: article.content,
-                score: article.score
+                score: article.score,
+                login: login
             }))
         }
         Ok(None) => {

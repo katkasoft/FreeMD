@@ -6,6 +6,7 @@ use crate::db::DbPool;
 use rocket::http::Status;
 use serde_json::json;
 use rocket::serde::json::Json;
+use crate::user::AuthenticatedUser;
 
 #[derive(FromForm)]
 pub struct Vote {
@@ -14,7 +15,7 @@ pub struct Vote {
 }
 
 #[post("/vote", data="<vote_form>")]
-pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>) -> Result<Json<serde_json::Value>, Status> {
+pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>, _user: AuthenticatedUser) -> Result<Json<serde_json::Value>, Status> {
     let id = vote_form.id;
     let option = &vote_form.option;
     

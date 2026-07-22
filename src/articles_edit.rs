@@ -4,6 +4,7 @@ use rocket::response::{Redirect, Responder};
 use rocket_dyn_templates::{Template, context};
 use rocket::State;
 use crate::db::DbPool;
+use crate::user::AuthenticatedUser;
 
 #[derive(FromForm)]
 pub struct NewPage<'r> {
@@ -27,7 +28,8 @@ pub enum CreatePageResponse {
 #[post("/new", data = "<page_form>")]
 pub async fn create_page(
     page_form: Form<NewPage<'_>>, 
-    pool: &State<DbPool> 
+    pool: &State<DbPool>,
+    _user: AuthenticatedUser
 ) -> CreatePageResponse {
     let title = page_form.title.trim();
     let content = page_form.content.trim();
@@ -59,7 +61,8 @@ pub async fn create_page(
 #[post("/edit", data = "<edit_form>")]
 pub async fn edit_page(
     edit_form: Form<EditPage<'_>>, 
-    pool: &State<DbPool> 
+    pool: &State<DbPool>,
+    _user: AuthenticatedUser
 ) -> CreatePageResponse  {
     let title = edit_form.title.trim();
     let content = edit_form.content.trim();

@@ -3,6 +3,7 @@ use rocket::form::Form;
 use rocket_dyn_templates::{Template, context};
 use rand::{distributions::Alphanumeric, Rng};
 use std::path::Path;
+use crate::user::AuthenticatedUser;
 
 #[derive(FromForm)]
 pub struct Upload<'r> {
@@ -10,7 +11,7 @@ pub struct Upload<'r> {
 }
 
 #[post("/upload", data = "<form>")]
-pub async fn upload(form: Form<Upload<'_>>) -> Template {
+pub async fn upload(form: Form<Upload<'_>>, _user: AuthenticatedUser) -> Template {
     let mut file = form.into_inner().file;
     let s: String = rand::thread_rng()
         .sample_iter(&Alphanumeric)

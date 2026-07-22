@@ -3,6 +3,8 @@ use crate::db::DbPool;
 use rocket::State;
 use sqlx::Row;
 use serde::Serialize;
+use crate::user::AuthenticatedUser;
+use rocket::http::CookieJar;
 
 #[derive(Debug, Serialize)]
 pub struct Article {
@@ -12,7 +14,7 @@ pub struct Article {
 }
 
 #[get("/")]
-pub async fn index(pool: &State<DbPool>) -> Template {
+pub async fn index(pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
     let rows = sqlx::query("SELECT id, title, content FROM articles ORDER BY created_at DESC")
         .fetch_all(&**pool)
         .await
@@ -34,17 +36,17 @@ pub async fn index(pool: &State<DbPool>) -> Template {
             }
         })
         .collect();
-
-    Template::render("index", context! { rows: articles })
+    let login = cookies.get_private("user_id").is_some();
+    Template::render("index", context! { rows: articles, login: login })
 }
 
 #[get("/new")]
-pub fn new_page() -> Template {
+pub fn new_page(_user: AuthenticatedUser) -> Template {
     Template::render("editor", context! {})
 }
 
 #[get("/edit?<id>")]
-pub async fn edit(id: i64, pool: &State<DbPool>) -> Template {
+pub async fn edit(id: i64, pool: &State<DbPool>, _user: AuthenticatedUser) -> Template {
     let row = sqlx::query("SELECT id, title, content FROM articles WHERE id = ?")
         .bind(id)
         .fetch_one(&**pool)
@@ -66,7 +68,7 @@ pub async fn edit(id: i64, pool: &State<DbPool>) -> Template {
 }
 
 #[get("/upload")]
-pub fn upload_page() -> Template {
+pub fn upload_page(_user: AuthenticatedUser) -> Template {
     Template::render("upload", context! {})
 }
 
