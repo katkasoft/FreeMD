@@ -15,10 +15,9 @@ pub struct Vote {
 }
 
 #[post("/vote", data="<vote_form>")]
-pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>, _user: AuthenticatedUser) -> Result<Json<serde_json::Value>, Status> {
+pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>, user: AuthenticatedUser) -> Result<Json<serde_json::Value>, Status> {
     let id = vote_form.id;
     let option = &vote_form.option;
-    
     let row = sqlx::query("SELECT score FROM articles WHERE id = ?")
         .bind(id)
         .fetch_one(&**pool)
@@ -29,10 +28,28 @@ pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>, _user: Authentica
         score += 1;
     } else if option == "down" {
         score -= 1;
+    } else {
+        return Err(Status::BadRequest)
     }
     sqlx::query("UPDATE articles SET score = ? WHERE id = ?")
         .bind(score)
         .bind(id)
+        .execute(&**pool)
+        .await
+        .map_err(|e| {
+            println!("Error while voting: {}", e);
+            Status::InternalServerError
+        })?;
+    let user_id = user.id;
+    let vote: i32 = match option.as_str() {
+        "up" => 1,
+        "down" => -1,
+        _ => unreachable!()
+    };
+    sqlx::query("INSERT INTO votes (user_id, article_id, value) VALUES (?, ?, ?)")
+        .bind(user_id)
+        .bind(id)
+        .bind(vote)
         .execute(&**pool)
         .await
         .map_err(|e| {

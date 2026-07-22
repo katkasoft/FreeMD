@@ -40,6 +40,20 @@ pub async fn init_db() -> DbPool {
     .await
     .expect("Error while creating users table");
 
-    
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS votes (
+            user_id INTEGER NOT NULL,
+            article_id INTEGER NOT NULL,
+            value INTEGER NOT NULL,
+            PRIMARY KEY (user_id, article_id),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+        );"
+    )
+    .execute(&pool)
+    .await
+    .expect("Error while creating votes table");
+
+
     pool
 }
