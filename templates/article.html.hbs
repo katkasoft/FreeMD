@@ -25,7 +25,12 @@
     </header>
     <div id="article">
         <div id="article-header">
-            <h1 id="title">{{ title }}</h1>
+            <div>
+                <h1 id="title">{{ title }}</h1>
+                <div class="article-meta">
+                    <span>Author: <strong>{{ author }}</strong></span>
+                </div>
+            </div>
             {{#if login}}
                 <button id="edit-btn">Edit</button>
             {{/if}}

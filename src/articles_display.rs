@@ -11,12 +11,13 @@ use rocket::http::CookieJar;
 struct Article {
     title: String,
     content: String,
-    score: i32
+    score: i32,
+    author: String
 }
 
 #[get("/article/<id>")]
 pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
-    let result = sqlx::query_as::<_, Article>("SELECT title, content, score FROM articles WHERE id = ?")
+    let result = sqlx::query_as::<_, Article>("SELECT title, content, score, author FROM articles WHERE id = ?")
         .bind(id)
         .fetch_optional(pool.inner())
         .await;
@@ -27,7 +28,8 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 title: article.title,
                 content: article.content,
                 score: article.score,
-                login: login
+                login: login,
+                author: article.author
             }))
         }
         Ok(None) => {
