@@ -5,12 +5,19 @@ use sqlx::Row;
 use serde::Serialize;
 use crate::user::AuthenticatedUser;
 use rocket::http::CookieJar;
+use rocket::http::Status;
 
 #[derive(Debug, Serialize)]
 pub struct Article {
     pub id: i64,
     pub title: String,
     pub content: String,
+}
+
+#[derive(Responder)]
+pub enum UserResponse {
+    Template(Template),
+    Status(Status),
 }
 
 #[get("/")]
@@ -80,4 +87,48 @@ pub fn login_page() -> Template {
 #[get("/register")]
 pub fn register_page() -> Template {
     Template::render("register", context! {})
+}
+
+#[get("/user/<username>")]
+pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_>) -> UserResponse {
+    let row = sqlx::query("SELECT created_at FROM users WHERE username = ?")
+        .bind(&username)
+        .fetch_optional(&**pool)
+        .await;
+    let user_row = match row {
+        Ok(Some(r)) => r,
+        Ok(None) => return UserResponse::Status(Status::NotFound),
+        Err(_) => return UserResponse::Status(Status::InternalServerError)
+    };
+    let created_at: String = user_row.get("created_at");
+    let rows_articles = sqlx::query("SELECT id, title, content FROM articles WHERE author = ? ORDER BY created_at DESC")
+        .bind(&username)
+        .fetch_all(&**pool)
+        .await
+        .expect("Error while getting articles");
+    let articles: Vec<Article> = rows_articles
+        .into_iter()
+        .map(|row| {
+            let full_content: String = row.get(2);
+            let preview = if full_content.len() > 100 {
+                full_content.chars().take(100).collect::<String>() + "..."
+            } else {
+                full_content
+            };
+            Article {
+                id: row.get(0),
+                title: row.get(1),
+                content: preview,
+            }
+        })
+        .collect();
+    let login = cookies.get_private("user_id").is_some();
+    UserResponse::Template(
+        Template::render("user", context! {
+            rows: articles,
+            login: login,
+            username: username,
+            created_at: created_at
+        })
+    )
 }
