@@ -5,42 +5,37 @@ const voteScore = document.getElementById('vote-score');
 let score = parseInt(voteScore.textContent);
 const id = window.location.pathname.split('/').at(-1);
 
-function getVotedArticles() {
-    try {
-        const data = document.cookie.split('; ').find(row => row.startsWith('voted_articles='));
-        if (data) {
-            const json = decodeURIComponent(data.split('=')[1]);
-            return JSON.parse(json);
-        }
-    } catch (e) {
-        console.error('Cookie error:', e);
-    }
-    return {};
-}
-
-function saveVotedArticle(articleId, option) {
-    try {
-        let voted = getVotedArticles();
-        voted[articleId] = option;
-        document.cookie = `voted_articles=${encodeURIComponent(JSON.stringify(voted))}; path=/; max-age=31536000`;
-    } catch (e) {
-        console.error('Not saved:', e);
-    }
-}
-
 const content = document.getElementById('content');
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     content.innerHTML = marked.parse(content.innerHTML);
     document.getElementById('edit-btn').addEventListener('click', () => {
         window.location.href = `/edit?id=${id}`;
     });
     upvoteBtn.addEventListener('click', () => vote('up'));
     downvoteBtn.addEventListener('click', () => vote('down'));
+
+    try {
+        const response = await fetch(`/api/vote_status?id=${id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error when getting status: ${response.status}`);
+        }
+        const data = await response.text();
+        if (data === "error") {
+            throw new Error("Internal server error");
+        } else if (data !== "none") {
+            voted = true
+        }
+        if (data === 'up') {
+            upvoteBtn.classList.add('active');
+        } else if (data === 'down') {
+            downvoteBtn.classList.add('active');
+        }
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 function vote(option) {
-    const votedArticles = getVotedArticles();
-    if (votedArticles[id]) return;
     if (voted) return;
     if (option === 'up') {
         upvoteBtn.classList.add('active');
@@ -54,7 +49,7 @@ function vote(option) {
     const url = `/api/vote?option=${option}&id=${id}`;
     const formData = new URLSearchParams();
     formData.append('option', option);
-    formData.append('id', id);
+    formData.append('id', id)
     fetch(url, {
         method: 'POST',
         headers: {
@@ -73,7 +68,6 @@ function vote(option) {
             voteScore.textContent = data.score;
             score = data.score;
         }
-        saveVotedArticle(id, option);
     })
     .catch(error => {
         console.error('Error: ', error);
@@ -86,5 +80,5 @@ function vote(option) {
             downvoteBtn.classList.remove('active');
         }
         voteScore.textContent = score;
-    })
+    });
 }
