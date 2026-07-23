@@ -173,3 +173,12 @@
     color: var(--accent);
     cursor: pointer;
 }
+
+.article-meta a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.article-meta a:hover {
+    text-decoration: underline;
+}
