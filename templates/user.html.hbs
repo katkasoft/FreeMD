@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {{username}} - FreeMD
+    </title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/user.css">
+</head>
+<body>
+    <header>
+        <div id="header-left">
+            <h1 id="header-title" onclick="window.location.href = '/'">FreeMD</h1>
+        </div>
+        <div id="header-right">
+            <input type="text" id="search" placeholder="Search...">
+            {{#if login}}
+                <button id="new" class="header-btn" onclick="window.location.href = '/new'">+</button>
+            {{else}}
+                <button id="login" class="header-btn" onclick="window.location.href = '/login'">Log in</button>
+                <button id="register" class="header-btn" onclick="window.location.href = '/register'">Register</button>
+            {{/if}}
+        </div>
+    </header>
+    <div id="user">
+        <h1 id="username">{{username}}</h1>
+        <p id="created-at">Account created at: {{created_at}}</p>
+    </div>
+    <div id="articles">
+        {{#each rows}}
+            <div class="article-preview" onclick="window.location = '/article/{{this.id}}'">
+                <h2 class="article-title">{{this.title}}</h2>
+                <p>{{this.content}}</p>
+            </div>
+        {{else}}
+            <p id="no-articles">No articles yet.</p>
+        {{/each}}
+    </div>
+    <script>
+        let search = document.getElementById('search');
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && search === document.activeElement && search.value.trim() != "") {
+                const encodedQuery = encodeURIComponent(search.value);
+                window.location.href = `/search?q=${encodedQuery}`;
+            }
+        });
+    </script>
+</body>
+</html>
