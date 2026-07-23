@@ -171,4 +171,5 @@
 
 .article-meta strong {
     color: var(--accent);
+    cursor: pointer;
 }

@@ -28,7 +28,7 @@
             <div>
                 <h1 id="title">{{ title }}</h1>
                 <div class="article-meta">
-                    <span>Author: <strong>{{ author }}</strong></span>
+                    <span>Author: <strong onclick="document.location.href='/user/{{author}}'">{{ author }}</strong></span>
                 </div>
             </div>
             {{#if login}}
