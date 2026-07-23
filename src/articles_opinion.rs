@@ -32,7 +32,6 @@ pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>, user: Authenticat
         .await;
     if let Err(e) = insert_result {
         println!("User already voted or invalid article: {}", e);
-        // Возвращаем Bad Request, если повторный голос
         return Err(Status::BadRequest);
     }
     let row = sqlx::query("SELECT score FROM articles WHERE id = ?")
@@ -52,4 +51,24 @@ pub async fn vote(pool: &State<DbPool>, vote_form: Form<Vote>, user: Authenticat
             Status::InternalServerError
         })?;
     Ok(Json(json!({ "score": score })))
+}
+
+#[get("/vote_status?<id>")]
+pub async fn vote_status(pool: &State<DbPool>, user: AuthenticatedUser, id: i64) -> Result<String, Status> {
+    let user_id = user.id;
+    let row = sqlx::query("SELECT value FROM votes WHERE user_id = ? AND article_id = ?")
+        .bind(user_id)
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await;
+    let status_text = match row {
+        Ok(Some(r)) => match r.get::<i32, _>("value") {
+            1 => "up",
+            -1 => "down",
+            _ => "none",
+        },
+        Ok(None) => "none",
+        Err(_) => "error"
+    };
+    Ok(status_text.to_string())
 }
