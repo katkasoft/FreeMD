@@ -70,7 +70,7 @@ pub async fn delete(user: AuthenticatedUser, cookies: &CookieJar<'_>, pool: &Sta
     }
 }
 
-#[post("/change_username", data="<change_username_form>")]
+#[post("/change-username", data="<change_username_form>")]
 pub async fn change_username(user: AuthenticatedUser, pool: &State<DbPool>, change_username_form: Form<ChangeUsername<'_>>) -> UserResponse {
     let id = user.id;
     let row = sqlx::query("SELECT created_at, username FROM users WHERE id = ?")

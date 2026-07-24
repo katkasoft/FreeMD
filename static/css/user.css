@@ -139,9 +139,23 @@
 }
 
 #actions form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+#actions form input[type="text"] {
     width: 100%;
 }
 
 #actions form button {
     width: 100%;
+}
+
+#error {
+    color: #ff4d4d;
+    font-size: 14px;
+    margin-top: 5px;
+    font-weight: bold;
 }
