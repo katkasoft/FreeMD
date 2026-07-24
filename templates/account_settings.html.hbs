@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        {{username}} - FreeMD
+        Account settings - FreeMD
     </title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/user.css">
@@ -30,8 +30,12 @@
             <input type="text" id="change-nickname" placeholder="Enter nickname" value="{{username}}">
             <button id="save">Save</button>
             <button id="change-password" class="settings-button" onclick="window.location.href = '/account-settings/change-password'">Change password</button>
-            <button id="logout" class="settings-button">Logout</button>
-            <button id="delete" class="settings-button">Delete account</button>
+            <form action="/api/logout" method="POST" style="display: inline;">
+                <button type="submit" id="logout" class="settings-button">Logout</button>
+            </form>
+            <form action="/api/delete_account" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure that you want to delete account? This action can not be canceled later.');">
+                <button type="submit" id="delete" class="settings-button">Delete account</button>
+            </form>
         </div>
     </div>
 </body>

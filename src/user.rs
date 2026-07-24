@@ -1,5 +1,8 @@
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::http::Status;
+use rocket::post;
+use rocket::response::Redirect;
+use rocket::http::CookieJar;
 
 pub struct AuthenticatedUser {
     pub id: i64,
@@ -19,4 +22,10 @@ impl<'r> FromRequest<'r> for AuthenticatedUser {
 
         Outcome::Error((Status::Unauthorized, ()))
     }
+}
+
+#[post("/logout")]
+pub async fn logout(_user: AuthenticatedUser, cookies: &CookieJar<'_>) -> Redirect {
+    cookies.remove_private("user_id");
+    Redirect::to(uri!("/"))
 }

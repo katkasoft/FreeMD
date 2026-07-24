@@ -10,7 +10,7 @@ mod search;
 mod upload;
 mod articles_opinion;
 mod auth;
-pub mod user;
+mod user;
 
 #[launch]
 async fn rocket() -> _ {
@@ -37,7 +37,8 @@ async fn rocket() -> _ {
             articles_opinion::vote,
             auth::register,
             auth::login,
-            articles_opinion::vote_status
+            articles_opinion::vote_status,
+            user::logout
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }

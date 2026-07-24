@@ -137,3 +137,11 @@
 #delete:hover {
     background: #f85149;
 }
+
+#actions form {
+    width: 100%;
+}
+
+#actions form button {
+    width: 100%;
+}
