@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {{username}} - FreeMD
+    </title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/user.css">
+</head>
+<body>
+    <header>
+        <div id="header-left">
+            <h1 id="header-title" onclick="window.location.href = '/'">FreeMD</h1>
+        </div>
+    </header>
+    <div id="user">
+    <div id="user-info-row">
+        <div>
+            <h1 id="username">{{username}}</h1>
+            <p id="created-at">Account created at: {{created_at}}</p>
+        </div>
+    </div>
+</div>
+    <div id="settings">
+        <h1 id="title">Account settings</h1>
+        <div id="actions">
+            <p>Nickname:</p>
+            <input type="text" id="change-nickname" placeholder="Enter nickname" value="{{username}}">
+            <button id="save">Save</button>
+            <button id="change-password" class="settings-button" onclick="window.location.href = '/account-settings/change-password'">Change password</button>
+            <button id="logout" class="settings-button">Logout</button>
+            <button id="delete" class="settings-button">Delete account</button>
+        </div>
+    </div>
+</body>
+</html>

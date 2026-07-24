@@ -134,3 +134,8 @@ pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_
         })
     )
 }
+
+#[get("/account-settings")]
+pub fn account_settings() -> Template {
+    Template::render("account_settings", context! {})
+}
