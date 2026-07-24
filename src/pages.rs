@@ -90,7 +90,7 @@ pub fn register_page() -> Template {
 }
 
 #[get("/user/<username>")]
-pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_>, user: AuthenticatedUser) -> UserResponse {
+pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_>) -> UserResponse {
     let row = sqlx::query("SELECT created_at, id FROM users WHERE username = ?")
         .bind(&username)
         .fetch_optional(&**pool)
@@ -123,14 +123,16 @@ pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_
             }
         })
         .collect();
-    let login = cookies.get_private("user_id").is_some();
+    let current_user_id: Option<i64> = cookies.get_private("user_id")
+        .and_then(|cookie| cookie.value().parse().ok());
+    let login = current_user_id.is_some();
     UserResponse::Template(
         Template::render("user", context! {
             rows: articles,
             login: login,
             username: username,
             created_at: created_at,
-            is_my_profile: user_id == user.id
+            is_my_profile: Some(user_id) == current_user_id
         })
     )
 }
