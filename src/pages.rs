@@ -90,8 +90,8 @@ pub fn register_page() -> Template {
 }
 
 #[get("/user/<username>")]
-pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_>) -> UserResponse {
-    let row = sqlx::query("SELECT created_at FROM users WHERE username = ?")
+pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_>, user: AuthenticatedUser) -> UserResponse {
+    let row = sqlx::query("SELECT created_at, id FROM users WHERE username = ?")
         .bind(&username)
         .fetch_optional(&**pool)
         .await;
@@ -101,6 +101,7 @@ pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_
         Err(_) => return UserResponse::Status(Status::InternalServerError)
     };
     let created_at: String = user_row.get("created_at");
+    let user_id: i64 = user_row.get("id");
     let rows_articles = sqlx::query("SELECT id, title, content FROM articles WHERE author = ? ORDER BY created_at DESC")
         .bind(&username)
         .fetch_all(&**pool)
@@ -128,7 +129,8 @@ pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_
             rows: articles,
             login: login,
             username: username,
-            created_at: created_at
+            created_at: created_at,
+            is_my_profile: user_id == user.id
         })
     )
 }

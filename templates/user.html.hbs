@@ -25,9 +25,16 @@
         </div>
     </header>
     <div id="user">
-        <h1 id="username">{{username}}</h1>
-        <p id="created-at">Account created at: {{created_at}}</p>
+    <div id="user-info-row">
+        <div>
+            <h1 id="username">{{username}}</h1>
+            <p id="created-at">Account created at: {{created_at}}</p>
+        </div>
+        {{#if is_my_profile}}
+            <a href="/account-settings" id="settings-gear" title="Settings">⚙️</a>
+        {{/if}}
     </div>
+</div>
     <div id="articles">
         {{#each rows}}
             <div class="article-preview" onclick="window.location = '/article/{{this.id}}'">

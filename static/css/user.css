@@ -31,3 +31,22 @@
 #no-articles {
     margin-top: 0;
 }
+
+#user-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+#settings-gear {
+    font-size: 1.8rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0.8;
+}
+
+#settings-gear:hover {
+    transform: rotate(90deg);
+    opacity: 1;
+}
