@@ -26,9 +26,14 @@
     <div id="settings">
         <h1 id="title">Account settings</h1>
         <div id="actions">
-            <p>Nickname:</p>
-            <input type="text" id="change-nickname" placeholder="Enter nickname" value="{{username}}">
-            <button id="save">Save</button>
+            <form action="/api/change_username" method="post">
+                <p>Username:</p>
+                <input type="text" id="change-username" name="username" placeholder="Enter new username" value="{{username}}" required>
+                <button id="save">Save</button>
+                {{#if error}}
+                    <p id="error">{{error}}</p>
+                {{/if}}
+            </form>
             <button id="change-password" class="settings-button" onclick="window.location.href = '/account-settings/change-password'">Change password</button>
             <form action="/api/logout" method="POST" style="display: inline;">
                 <button type="submit" id="logout" class="settings-button">Logout</button>

@@ -5,6 +5,9 @@ use rocket::response::{Redirect, Responder};
 use rocket::http::CookieJar;
 use rocket::State;
 use crate::db::DbPool;
+use rocket::form::Form;
+use rocket_dyn_templates::{Template, context};
+use sqlx::Row;
 
 pub struct AuthenticatedUser {
     pub id: i64,
@@ -32,6 +35,17 @@ pub enum RedirectOrStatus {
     Status(Status),
 }
 
+#[derive(FromForm)]
+pub struct ChangeUsername<'r> {
+    pub username: &'r str
+}
+
+#[derive(Responder)]
+pub enum UserResponse {
+    Template(Template),
+    Status(Status),
+}
+
 #[post("/logout")]
 pub async fn logout(_user: AuthenticatedUser, cookies: &CookieJar<'_>) -> Redirect {
     cookies.remove_private("user_id");
@@ -52,6 +66,63 @@ pub async fn delete(user: AuthenticatedUser, cookies: &CookieJar<'_>, pool: &Sta
         },
         Err(_) => {
             RedirectOrStatus::Status(Status::InternalServerError)
+        }
+    }
+}
+#[post("/change_username", data="<change_username_form>")]
+pub async fn change_username(user: AuthenticatedUser, pool: &State<DbPool>, change_username_form: Form<ChangeUsername<'_>>) -> UserResponse {
+    let id = user.id;
+    let row = sqlx::query("SELECT created_at, username FROM users WHERE id = ?")
+        .bind(&id)
+        .fetch_optional(&**pool)
+        .await;
+    let user_row = match row {
+        Ok(Some(r)) => r,
+        Ok(None) => return UserResponse::Status(Status::NotFound),
+        Err(_) => return UserResponse::Status(Status::InternalServerError)
+    };
+    let username_old: String = user_row.get("username");
+    let created_at: String = user_row.get("created_at");
+    let username_new = change_username_form.username;
+    if username_new == username_old || username_new.is_empty() {
+        return UserResponse::Template(
+            Template::render("account_settings", context! {
+                username: username_old,
+                created_at: created_at
+            })
+        );
+    }
+    let username_length = username_new.chars().count();
+    if username_length < 2 || username_length > 50 {
+        return UserResponse::Template(
+            Template::render("account_settings", context! {
+                username: username_old,
+                created_at: created_at,
+                error: "Username must be from 2 to 50 chars"
+            })
+        );
+    }
+    let result = sqlx::query("UPDATE users SET username = ? WHERE id = ?")
+        .bind(id)
+        .execute(&**pool)
+        .await;
+    match result {
+        Ok(_) => {
+            UserResponse::Template(
+                Template::render("account_settings", context! {
+                    username: username_new,
+                    created_at: created_at
+                })
+            )
+        },
+        Err(_) => {
+            UserResponse::Template(
+                Template::render("account_settings", context! {
+                    username: username_old,
+                    created_at: created_at,
+                    error: "Internal server error"
+                })
+            )
         }
     }
 }
