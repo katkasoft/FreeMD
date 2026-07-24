@@ -136,6 +136,23 @@ pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_
 }
 
 #[get("/account-settings")]
-pub fn account_settings() -> Template {
-    Template::render("account_settings", context! {})
+pub async fn account_settings(pool: &State<DbPool>, user: AuthenticatedUser) -> UserResponse {
+    let id = user.id;
+    let row = sqlx::query("SELECT created_at, username FROM users WHERE id = ?")
+        .bind(&id)
+        .fetch_optional(&**pool)
+        .await;
+    let user_row = match row {
+        Ok(Some(r)) => r,
+        Ok(None) => return UserResponse::Status(Status::NotFound),
+        Err(_) => return UserResponse::Status(Status::InternalServerError)
+    };
+    let username: String = user_row.get("username");
+    let created_at: String = user_row.get("created_at");
+    UserResponse::Template(
+        Template::render("account_settings", context! {
+            username: username,
+            created_at: created_at
+        })
+    )
 }
