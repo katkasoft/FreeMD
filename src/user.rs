@@ -69,6 +69,7 @@ pub async fn delete(user: AuthenticatedUser, cookies: &CookieJar<'_>, pool: &Sta
         }
     }
 }
+
 #[post("/change_username", data="<change_username_form>")]
 pub async fn change_username(user: AuthenticatedUser, pool: &State<DbPool>, change_username_form: Form<ChangeUsername<'_>>) -> UserResponse {
     let id = user.id;
@@ -102,12 +103,31 @@ pub async fn change_username(user: AuthenticatedUser, pool: &State<DbPool>, chan
             })
         );
     }
+    let existing = sqlx::query("SELECT id FROM users WHERE username = ?")
+        .bind(&username_new)
+        .fetch_optional(&**pool)
+        .await;
+    if let Ok(Some(_)) = existing {
+        return UserResponse::Template(
+            Template::render("account_settings", context! {
+                username: username_old,
+                created_at: created_at,
+                error: "This nickname is already taken"
+            })
+        );
+    }
     let result = sqlx::query("UPDATE users SET username = ? WHERE id = ?")
+        .bind(&username_new)
         .bind(id)
         .execute(&**pool)
         .await;
     match result {
         Ok(_) => {
+            let _ = sqlx::query("UPDATE articles SET author = ? WHERE author = ?")
+                .bind(&username_new)
+                .bind(&username_old)
+                .execute(&**pool)
+                .await;
             UserResponse::Template(
                 Template::render("account_settings", context! {
                     username: username_new,
