@@ -39,9 +39,9 @@ pub async fn create_page(
             error: "Not all fields are filled in" 
         }));
     }
-    if title.len() > 100 || content.len() > 10000 {
+    if title.len() > 200 || content.len() > 100000 {
         return CreatePageResponse::Template(Template::render("editor", context! { 
-            error: "Too many text! Limits: 100 chars max for title and 10000 for content" 
+            error: "Too much text! Limits: 200 chars max for title and 100000 for content" 
         }));
     }
     let id: i64 = user.id;
@@ -89,9 +89,9 @@ pub async fn edit_page(
             id: id
         }));
     }
-    if title.len() > 100 || content.len() > 10000 {
+    if title.len() > 200 || content.len() > 100000 {
         return CreatePageResponse::Template(Template::render("editor", context! { 
-            error: "Too many text! Limits: 100 chars max for title and 10000 for content",
+            error: "Too much text! Limits: 200 chars max for title and 100000 for content",
             edit: true,
             title: title,
             content: content,
