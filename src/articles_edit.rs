@@ -1,8 +1,10 @@
 use rocket::form::Form;
+use rocket::http::Status;
 use rocket::post;
 use rocket::response::{Redirect, Responder};
 use rocket_dyn_templates::{Template, context};
 use rocket::State;
+use crate::auth;
 use crate::db::DbPool;
 use crate::user::AuthenticatedUser;
 use sqlx::Row;
@@ -24,6 +26,7 @@ pub struct EditPage<'r> {
 pub enum CreatePageResponse {
     Template(Template),
     Redirect(Redirect),
+    Status(Status)
 }
 
 #[post("/new", data = "<page_form>")]
@@ -75,11 +78,27 @@ pub async fn create_page(
 pub async fn edit_page(
     edit_form: Form<EditPage<'_>>, 
     pool: &State<DbPool>,
-    _user: AuthenticatedUser
+    user: AuthenticatedUser
 ) -> CreatePageResponse  {
+    let user_id = user.id;
+    let id = edit_form.id;
+    let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(user_id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("username"));
+    let author: Option<String> = sqlx::query("SELECT author FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("author"));
+    if username != author {
+        return CreatePageResponse::Status(Status::Forbidden)
+    }
     let title = edit_form.title.trim();
     let content = edit_form.content.trim();
-    let id = edit_form.id;
     if title.is_empty() || content.is_empty() {
         return CreatePageResponse::Template(Template::render("editor", context! { 
             error: "Not all fields are filled in",
