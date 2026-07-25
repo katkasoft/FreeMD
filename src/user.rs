@@ -8,6 +8,7 @@ use crate::db::DbPool;
 use rocket::form::Form;
 use rocket_dyn_templates::{Template, context};
 use sqlx::Row;
+use crate::auth::{hash_password, verify_password};
 
 pub struct AuthenticatedUser {
     pub id: i64,
@@ -44,6 +45,19 @@ pub struct ChangeUsername<'r> {
 pub enum UserResponse {
     Template(Template),
     Status(Status),
+}
+
+#[derive(FromForm)]
+pub struct ChangePassword<'r> {
+    pub old_password: &'r str,
+    pub new_password: &'r str,
+    pub confirm: &'r str,
+}
+
+#[derive(Responder)]
+pub enum TemplateOrRedirect {
+    Template(Template),
+    Redirect(Redirect),
 }
 
 #[post("/logout")]
@@ -143,6 +157,101 @@ pub async fn change_username(user: AuthenticatedUser, pool: &State<DbPool>, chan
                     error: "Internal server error"
                 })
             )
+        }
+    }
+}
+
+#[post("/change-password", data="<change_password_form>")]
+pub async fn change_password(
+    change_password_form: Form<ChangePassword<'_>>,
+    pool: &State<DbPool>,
+    user: AuthenticatedUser
+) -> TemplateOrRedirect {
+    let id = user.id;
+    let old_password = change_password_form.old_password;
+    let new_password = change_password_form.new_password;
+    let confirm = change_password_form.confirm;
+    if old_password.is_empty() || new_password.is_empty() || confirm.is_empty() {
+        return TemplateOrRedirect::Template(
+            Template::render("change_password", context! {
+                error: "Not all fields are filled in"
+            })
+        );
+    }
+    if old_password == new_password {
+        return TemplateOrRedirect::Template(
+            Template::render("change_password", context! {
+                error: "Nothting to change"
+            })
+        );
+    }
+    if new_password != confirm {
+        return TemplateOrRedirect::Template(
+            Template::render("change_password", context! {
+                error: "Passwords not matching"
+            })
+        );
+    }
+    let password_length = new_password.chars().count();
+    if password_length < 4 || password_length > 50 {
+        return TemplateOrRedirect::Template(
+            Template::render("change_password", context! {
+                error: "Password must be from 4 to 50 chars"
+            })
+        );
+    }
+    let row = sqlx::query("SELECT password FROM users WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await;
+    let user_row = match row {
+        Ok(Some(r)) => r,
+        Ok(None) => {
+            return TemplateOrRedirect::Template(
+                Template::render("change_password", context! {
+                    error: "Invalid user's id"
+                })
+            );
+        }
+        Err(_) => {
+            return TemplateOrRedirect::Template(
+                Template::render("change_password", context! {
+                    error: "Internal server error"
+                })
+            );
+        }
+    };
+    let db_password_hash: String = user_row.get("password");
+    if !verify_password(old_password, &db_password_hash) {
+        return TemplateOrRedirect::Template(
+            Template::render("change_password", context! {
+                error: "Incorrect password"
+            })
+        );
+    }
+    let hashed_new_password = match hash_password(new_password) {
+        Ok(h) => h,
+        Err(_) => {
+            return TemplateOrRedirect::Template(
+                Template::render("change_password", context! {
+                    error: "Internal server error"
+                })
+            );
+        }
+    };
+    let result = sqlx::query("UPDATE users SET password = ? WHERE id = ?")
+        .bind(&hashed_new_password)
+        .bind(id)
+        .execute(&**pool)
+        .await;
+    match result {
+        Ok(_) => TemplateOrRedirect::Redirect(Redirect::to(uri!("/account-settings"))),
+        Err(_) => {
+            return TemplateOrRedirect::Template(
+                Template::render("change_password", context! {
+                    error: "Internal server error"
+                })
+            );
         }
     }
 }
