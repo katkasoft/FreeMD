@@ -3,6 +3,7 @@ use crate::db::DbPool;
 use rocket::State;
 use sqlx::Row;
 use serde::Serialize;
+use rocket::http::CookieJar;
 
 #[derive(Debug, Serialize)]
 pub struct Article {
@@ -11,8 +12,19 @@ pub struct Article {
     pub content: String,
 }
 
+async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<String> {
+    let current_user_id: i64 = cookies.get_private("user_id")
+        .and_then(|cookie| cookie.value().parse().ok())?;
+    let row = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(current_user_id)
+        .fetch_optional(pool)
+        .await
+        .ok()?;
+    row.map(|r| r.get("username"))
+}
+
 #[get("/search?<q>")]
-pub async fn search(q: String, pool: &State<DbPool>) -> Template {
+pub async fn search(q: String, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
     let search_term = format!("%{}%", q.to_lowercase());
     let rows = sqlx::query(
         "SELECT id, title, content FROM articles \
@@ -40,5 +52,13 @@ pub async fn search(q: String, pool: &State<DbPool>) -> Template {
             }
         })
         .collect();
-    Template::render("index", context! { rows: articles, query: q })
+    let login = cookies.get_private("user_id").is_some();
+    let username = get_current_username(&**pool, cookies).await;
+
+    Template::render("index", context! { 
+        rows: articles, 
+        query: q,
+        login: login,
+        username: username
+    })
 }

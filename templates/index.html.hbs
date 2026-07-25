@@ -21,6 +21,7 @@
             <input type="text" id="search" placeholder="Search...">
             {{#if login}}
                 <button id="new" class="header-btn" onclick="window.location.href = '/new'">+</button>
+                <a href="/user/{{username}}" id="header-username">{{username}}</a>
             {{else}}
                 <button id="login" class="header-btn" onclick="window.location.href = '/login'">Log in</button>
                 <button id="register" class="header-btn" onclick="window.location.href = '/register'">Register</button>

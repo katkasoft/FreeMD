@@ -5,6 +5,7 @@ use sqlx::FromRow;
 use crate::db::DbPool;
 use rocket::http::Status;
 use rocket::http::CookieJar;
+use sqlx::Row;
 
 #[derive(Serialize, FromRow)]
 #[serde(crate = "rocket::serde")]
@@ -13,6 +14,17 @@ struct Article {
     content: String,
     score: i32,
     author: String
+}
+
+async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<String> {
+    let current_user_id: i64 = cookies.get_private("user_id")
+        .and_then(|cookie| cookie.value().parse().ok())?;
+    let row = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(current_user_id)
+        .fetch_optional(pool)
+        .await
+        .ok()?;
+    row.map(|r| r.get("username"))
 }
 
 #[get("/article/<id>")]
@@ -24,12 +36,14 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
     match result {
         Ok(Some(article)) => {
             let login = cookies.get_private("user_id").is_some();
+            let username = get_current_username(pool.inner(), cookies).await;
             Ok(Template::render("article", context! {
                 title: article.title,
                 content: article.content,
                 score: article.score,
                 login: login,
-                author: article.author
+                author: article.author,
+                username: username
             }))
         }
         Ok(None) => {

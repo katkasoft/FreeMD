@@ -20,13 +20,25 @@ pub enum UserResponse {
     Status(Status),
 }
 
+async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<String> {
+    let current_user_id: i64 = cookies.get_private("user_id")
+        .and_then(|cookie| cookie.value().parse().ok())?;
+    
+    let row = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(current_user_id)
+        .fetch_optional(pool)
+        .await
+        .ok()?;
+    
+    row.map(|r| r.get("username"))
+}
+
 #[get("/")]
 pub async fn index(pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
     let rows = sqlx::query("SELECT id, title, content FROM articles ORDER BY created_at DESC")
         .fetch_all(&**pool)
         .await
         .expect("Error while getting articles");
-
     let articles: Vec<Article> = rows
         .into_iter()
         .map(|row| {
@@ -44,7 +56,13 @@ pub async fn index(pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
         })
         .collect();
     let login = cookies.get_private("user_id").is_some();
-    Template::render("index", context! { rows: articles, login: login })
+    let username = get_current_username(&**pool, cookies).await;
+    
+    Template::render("index", context! { 
+        rows: articles, 
+        login: login, 
+        username: username 
+    })
 }
 
 #[get("/new")]
@@ -126,13 +144,16 @@ pub async fn user(pool: &State<DbPool>, username: String, cookies: &CookieJar<'_
     let current_user_id: Option<i64> = cookies.get_private("user_id")
         .and_then(|cookie| cookie.value().parse().ok());
     let login = current_user_id.is_some();
+    let current_username = get_current_username(&**pool, cookies).await;
+    
     UserResponse::Template(
         Template::render("user", context! {
             rows: articles,
             login: login,
             username: username,
             created_at: created_at,
-            is_my_profile: Some(user_id) == current_user_id
+            is_my_profile: Some(user_id) == current_user_id,
+            current_username: current_username
         })
     )
 }
@@ -160,6 +181,6 @@ pub async fn account_settings(pool: &State<DbPool>, user: AuthenticatedUser) -> 
 }
 
 #[get("/account-settings/change-password")]
-pub fn change_password_page(_user: AuthenticatedUser    ) -> Template {
+pub fn change_password_page(_user: AuthenticatedUser) -> Template {
     Template::render("change_password", context! {})
 }
