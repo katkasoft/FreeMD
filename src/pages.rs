@@ -158,3 +158,8 @@ pub async fn account_settings(pool: &State<DbPool>, user: AuthenticatedUser) -> 
         })
     )
 }
+
+#[get("/account-settings/change-password")]
+pub fn change_password_page(_user: AuthenticatedUser    ) -> Template {
+    Template::render("change_password", context! {})
+}
