@@ -4,7 +4,6 @@ use rocket::post;
 use rocket::response::{Redirect, Responder};
 use rocket_dyn_templates::{Template, context};
 use rocket::State;
-use crate::auth;
 use crate::db::DbPool;
 use crate::user::AuthenticatedUser;
 use sqlx::Row;
@@ -19,6 +18,11 @@ pub struct NewPage<'r> {
 pub struct EditPage<'r> {
     pub title: &'r str,
     pub content: &'r str,
+    pub id: i64
+}
+
+#[derive(FromForm)]
+pub struct DeleteArticle {
     pub id: i64
 }
 
@@ -134,5 +138,38 @@ pub async fn edit_page(
                 id: id
             }))
         }
+    }
+}
+
+#[post("/delete-article", data = "<delete_form>")]
+pub async fn delete_article(
+    delete_form: Form<DeleteArticle>,
+    pool: &State<DbPool>,
+    user: AuthenticatedUser
+) -> CreatePageResponse {
+    let id = delete_form.id;
+    let user_id = user.id;
+    let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(user_id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("username"));
+    let author: Option<String> = sqlx::query("SELECT author FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("author"));
+    if username != author {
+        return CreatePageResponse::Status(Status::Forbidden)
+    }
+    let result = sqlx::query("DELETE FROM articles WHERE id = ?")
+        .bind(id)
+        .execute(&**pool)
+        .await;
+    match result {
+        Ok(_) => CreatePageResponse::Redirect(Redirect::to(uri!("/"))),
+        Err(_) => CreatePageResponse::Status(Status::InternalServerError)
     }
 }

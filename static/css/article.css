@@ -182,3 +182,29 @@
 .article-meta a:hover {
     text-decoration: underline;
 }
+
+#delete-btn {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+#delete-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+}
+
+#delete-btn:active {
+    transform: translateY(0);
+}
+
+.article-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}

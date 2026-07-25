@@ -33,7 +33,13 @@
                 </div>
             </div>
             {{#if is_author}}
-                <button id="edit-btn">Edit</button>
+                <div class="article-actions">
+                    <a href="/edit?id={{id}}" id="edit-btn">Edit</a>
+                    <form action="/api/delete-article" method="post" onsubmit="return confirm('Are you sure that you want delete this article? This can not be cancelled');" style="display:inline;">
+                        <input type="hidden" name="id" value="{{id}}">
+                        <button type="submit" id="delete-btn">Delete</button>
+                    </form>
+                </div>
             {{/if}}
         </div>
         <div id="content">{{ content }}</div>
