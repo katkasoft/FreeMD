@@ -6,7 +6,7 @@ use crate::db::DbPool;
 use rocket::http::Status;
 use serde_json::json;
 use rocket::serde::json::Json;
-use rocket::serde::Serialize;
+use rocket::serde::{Serialize, Deserialize};
 use crate::user::AuthenticatedUser;
 
 #[derive(FromForm)]
@@ -15,7 +15,7 @@ pub struct Vote {
     pub id: i64
 }
 
-#[derive(FromForm)]
+#[derive(Deserialize)]
 pub struct Comment<'r> {
     pub article_id: i64,
     pub content: &'r str,
@@ -87,7 +87,7 @@ pub async fn vote_status(pool: &State<DbPool>, user: AuthenticatedUser, id: i64)
 }
 
 #[post("/new-comment", data="<comment_form>")]
-pub async fn comment(pool: &State<DbPool>, user: AuthenticatedUser, comment_form: Form<Comment<'_>>) -> Json<ApiResponse<'static>> {
+pub async fn comment(pool: &State<DbPool>, user: AuthenticatedUser, comment_form: Json<Comment<'_>>) -> Json<ApiResponse<'static>> {
     let article_id = comment_form.article_id;
     let content = comment_form.content;
     let user_id = user.id;
