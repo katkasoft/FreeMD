@@ -48,6 +48,26 @@
             <span class="vote-score" id="vote-score">{{score}}</span>
             <button class="vote-btn vote-down" aria-label="Downvote">▼</button>
         </div>
+        <div id="comments-section">
+            <h2>Comments</h2>
+            {{#if login}}
+                <form action="/api/new-comment" method="POST" id="comment-form">
+                    <input type="hidden" name="article_id" value="{{id}}">
+                    <textarea name="content" placeholder="Write a comment..." required></textarea>
+                    <button type="submit">Post Comment</button>
+                </form>
+            {{/if}}
+            <div id="comments-list">
+                {{#each comments}}
+                    <div class="comment">
+                        <p><strong><a href="/user/{{this.author}}">{{this.author}}</a></strong> <span class="comment-date">{{this.created_at}}</span></p>
+                        <p>{{this.content}}</p>
+                    </div>
+                {{else}}
+                    <p>No comments yet..</p>
+                {{/each}}
+            </div>
+        </div>
     </div>
     <script src="/static/js/article.js"></script>
 </body>
