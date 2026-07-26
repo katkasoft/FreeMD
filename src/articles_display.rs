@@ -44,7 +44,8 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 login: login,
                 author: article.author.clone(),
                 username: username.clone(),
-                is_author: username.as_deref() == Some(article.author.as_str())
+                is_author: username.as_deref() == Some(article.author.as_str()),
+                id: id
             }))
         }
         Ok(None) => {
