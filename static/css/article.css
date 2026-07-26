@@ -331,3 +331,11 @@
     border: 1px dashed var(--border);
     border-radius: 8px;
 }
+
+#comment-error {
+    background: var(--surface);
+    border: 1px solid var(--danger);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 4px;
+}

@@ -54,6 +54,7 @@
                 <form action="/api/new-comment" method="POST" id="comment-form">
                     <input type="hidden" name="article_id" value="{{id}}">
                     <textarea name="content" placeholder="Write a comment..." required></textarea>
+                    <p id="comment-error" style="color: var(--danger); display: none; margin: 0; font-size: 0.9rem;"></p>
                     <button type="submit">Post Comment</button>
                 </form>
             {{/if}}

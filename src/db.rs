@@ -54,6 +54,19 @@ pub async fn init_db() -> DbPool {
     .await
     .expect("Error while creating votes table");
 
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            author TEXT NOT NULL,
+            article_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
+        );"
+    )
+    .execute(&pool)
+    .await
+    .expect("Error while creating comments table");
 
     pool
 }

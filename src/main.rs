@@ -43,7 +43,8 @@ async fn rocket() -> _ {
             user::delete,
             user::change_username,
             user::change_password,
-            articles_edit::delete_article
+            articles_edit::delete_article,
+            articles_opinion::comment
         ])
         .mount("/static", FileServer::from(relative!("static")))
 }

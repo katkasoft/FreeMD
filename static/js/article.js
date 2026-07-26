@@ -82,3 +82,33 @@ function vote(option) {
         voteScore.textContent = score;
     });
 }
+
+document.getElementById('comment-form')?.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const form = event.target;
+    const errorElem = document.getElementById('comment-error');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    errorElem.style.display = 'none';
+    errorElem.textContent = '';
+    try {
+        const response = await fetch('/api/new-comment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            form.reset();
+            window.location.reload();
+        } else {
+            errorElem.textContent = result.message || 'Unknown error occurred';
+            errorElem.style.display = 'block';
+        }
+    } catch (err) {
+        errorElem.textContent = 'Network error, connection died';
+        errorElem.style.display = 'block';
+    }
+});

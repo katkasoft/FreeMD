@@ -6,12 +6,25 @@ use crate::db::DbPool;
 use rocket::http::Status;
 use serde_json::json;
 use rocket::serde::json::Json;
+use rocket::serde::Serialize;
 use crate::user::AuthenticatedUser;
 
 #[derive(FromForm)]
 pub struct Vote {
     pub option: String,
     pub id: i64
+}
+
+#[derive(FromForm)]
+pub struct Comment<'r> {
+    pub article_id: i64,
+    pub content: &'r str,
+}
+
+#[derive(Serialize)]
+pub struct ApiResponse<'r> {
+    pub status: &'r str,
+    pub message: &'r str,
 }
 
 #[post("/vote", data="<vote_form>")]
@@ -71,4 +84,49 @@ pub async fn vote_status(pool: &State<DbPool>, user: AuthenticatedUser, id: i64)
         Err(_) => "error"
     };
     Ok(status_text.to_string())
+}
+
+#[post("/new-comment", data="<comment_form>")]
+pub async fn comment(pool: &State<DbPool>, user: AuthenticatedUser, comment_form: Form<Comment<'_>>) -> Json<ApiResponse<'static>> {
+    let article_id = comment_form.article_id;
+    let content = comment_form.content;
+    let user_id = user.id;
+    if content.is_empty() {
+        return Json(ApiResponse{
+            status: "error",
+            message: "Comment cannot be empty"
+        });
+    }
+    if content.chars().count() > 1000 {
+        return Json(ApiResponse{
+            status: "error",
+            message: "Comment is too long: 1000 chars max"
+        });
+    }
+    let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(user_id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("username"));
+    let result = sqlx::query("INSERT INTO comments (author, article_id, content) VALUES (?, ?, ?)")
+        .bind(username)
+        .bind(article_id)
+        .bind(content)
+        .execute(&**pool)
+        .await;
+    match result {
+        Ok(_) => {
+            Json(ApiResponse {
+                status: "success",
+                message: "OK",
+            })
+        }
+        Err(_) => {
+            Json(ApiResponse {
+                status: "error",
+                message: "Internal server error",
+            })
+        }
+    }
 }
