@@ -16,6 +16,13 @@ struct Article {
     author: String
 }
 
+#[derive(Debug, Serialize)]
+pub struct Comment {
+    pub author: String,
+    pub content: String,
+    pub created_at: String
+}
+
 async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<String> {
     let current_user_id: i64 = cookies.get_private("user_id")
         .and_then(|cookie| cookie.value().parse().ok())?;
@@ -35,6 +42,21 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
         .await;
     match result {
         Ok(Some(article)) => {
+            let rows = sqlx::query("SELECT author, content, created_at FROM comments WHERE article_id = ?")
+                .bind(id)
+                .fetch_all(pool.inner())
+                .await
+                .expect("Error while getting comment");
+            let comments: Vec<Comment> = rows
+                .into_iter()
+                .map(|row| {
+                    Comment {
+                        author: row.get(0),
+                        content: row.get(1),
+                        created_at: row.get(2)
+                    }
+                })
+                .collect();
             let login = cookies.get_private("user_id").is_some();
             let username = get_current_username(pool.inner(), cookies).await;
             Ok(Template::render("article", context! {
@@ -45,7 +67,8 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 author: article.author.clone(),
                 username: username.clone(),
                 is_author: username.as_deref() == Some(article.author.as_str()),
-                id: id
+                id: id,
+                comments: comments
             }))
         }
         Ok(None) => {
