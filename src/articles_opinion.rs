@@ -17,7 +17,7 @@ pub struct Vote {
 
 #[derive(Deserialize)]
 pub struct Comment<'r> {
-    pub article_id: i64,
+    pub article_id: String,
     pub content: &'r str,
 }
 
@@ -88,7 +88,7 @@ pub async fn vote_status(pool: &State<DbPool>, user: AuthenticatedUser, id: i64)
 
 #[post("/new-comment", data="<comment_form>")]
 pub async fn comment(pool: &State<DbPool>, user: AuthenticatedUser, comment_form: Json<Comment<'_>>) -> Json<ApiResponse<'static>> {
-    let article_id = comment_form.article_id;
+    let article_id: i64 = comment_form.article_id.parse().unwrap_or(0);
     let content = comment_form.content;
     let user_id = user.id;
     if content.is_empty() {
