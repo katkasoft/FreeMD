@@ -32,7 +32,7 @@
                     <span>Author: <a href="/user/{{author}}" class="author-link"><strong>{{ author }}</strong></a></span>
                 </div>
             </div>
-            {{#if is_author}}
+            {{#if is_editable }}
                 <div class="article-actions">
                     <a href="/edit?id={{id}}" id="edit-btn">Edit</a>
                     <form action="/api/delete-article" method="post" onsubmit="return confirm('Are you sure that you want delete this article? This can not be cancelled');" style="display:inline;">

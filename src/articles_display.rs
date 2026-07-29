@@ -13,7 +13,8 @@ struct Article {
     title: String,
     content: String,
     score: i32,
-    author: String
+    author: String,
+    editable_for_all: i32
 }
 
 #[derive(Debug, Serialize)]
@@ -36,7 +37,7 @@ async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<
 
 #[get("/article/<id>")]
 pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
-    let result = sqlx::query_as::<_, Article>("SELECT title, content, score, author FROM articles WHERE id = ?")
+    let result = sqlx::query_as::<_, Article>("SELECT title, content, score, author, editable_for_all FROM articles WHERE id = ?")
         .bind(id)
         .fetch_optional(pool.inner())
         .await;
@@ -59,6 +60,7 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 .collect();
             let login = cookies.get_private("user_id").is_some();
             let username = get_current_username(pool.inner(), cookies).await;
+            let is_author = username.as_deref() == Some(article.author.as_str());
             Ok(Template::render("article", context! {
                 title: article.title,
                 content: article.content,
@@ -66,9 +68,10 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 login: login,
                 author: article.author.clone(),
                 username: username.clone(),
-                is_author: username.as_deref() == Some(article.author.as_str()),
+                is_author: is_author,
                 id: id,
-                comments: comments
+                comments: comments,
+                is_editable: article.editable_for_all == 1 || is_author
             }))
         }
         Ok(None) => {
