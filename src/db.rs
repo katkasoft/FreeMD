@@ -21,7 +21,8 @@ pub async fn init_db() -> DbPool {
             content TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             score INTEGER NOT NULL DEFAULT 0,
-            author TEXT NOT NULL
+            author TEXT NOT NULL,
+            editable_for_all INTEGER NOT NULL DEFAULT 0
         );"
     )
     .execute(&pool)

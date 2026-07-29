@@ -12,13 +12,15 @@ use sqlx::Row;
 pub struct NewPage<'r> {
     pub title: &'r str,
     pub content: &'r str,
+    pub editable_for_all: Option<bool>
 }
 
 #[derive(FromForm)]
 pub struct EditPage<'r> {
     pub title: &'r str,
     pub content: &'r str,
-    pub id: i64
+    pub id: i64,
+    pub editable_for_all: Option<bool>
 }
 
 #[derive(FromForm)]
@@ -41,6 +43,7 @@ pub async fn create_page(
 ) -> CreatePageResponse {
     let title = page_form.title.trim();
     let content = page_form.content.trim();
+    let editable =  if page_form.editable_for_all.unwrap_or(false) { 1 } else { 0 };
     if title.is_empty() || content.is_empty() {
         return CreatePageResponse::Template(Template::render("editor", context! { 
             error: "Not all fields are filled in" 
@@ -62,10 +65,11 @@ pub async fn create_page(
             error: "Internal server error"
         })),
     };
-    let result = sqlx::query("INSERT INTO articles (title, content, author) VALUES (?, ?, ?)")
+    let result = sqlx::query("INSERT INTO articles (title, content, author, editable_for_all) VALUES (?, ?, ?, ?)")
         .bind(title)
         .bind(content)
         .bind(&username)
+        .bind(editable)
         .execute(&**pool)
         .await;
     match result {
@@ -86,6 +90,7 @@ pub async fn edit_page(
 ) -> CreatePageResponse  {
     let user_id = user.id;
     let id = edit_form.id;
+    let editable =  if edit_form.editable_for_all.unwrap_or(false) { 1 } else { 0 };
     let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
         .bind(user_id)
         .fetch_optional(&**pool)
@@ -98,8 +103,16 @@ pub async fn edit_page(
         .await
         .unwrap_or(None)
         .map(|row| row.get("author"));
-    if username != author {
-        return CreatePageResponse::Status(Status::Forbidden)
+    let db_editable: i32 = sqlx::query("SELECT editable_for_all FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("editable_for_all"))
+        .unwrap_or(0);
+
+    if username != author && db_editable != 1 {
+        return CreatePageResponse::Status(Status::Forbidden);
     }
     let title = edit_form.title.trim();
     let content = edit_form.content.trim();
@@ -121,10 +134,11 @@ pub async fn edit_page(
             id: id
         }));
     }
-    let result = sqlx::query("UPDATE articles SET title = ?, content = ? WHERE id = ?")
+    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ?    WHERE id = ?")
         .bind(title)
         .bind(content)
         .bind(id)
+        .bind(editable)
         .execute(&**pool)
         .await;
     match result {
