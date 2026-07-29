@@ -90,7 +90,7 @@ pub async fn edit_page(
 ) -> CreatePageResponse  {
     let user_id = user.id;
     let id = edit_form.id;
-    let editable =  if edit_form.editable_for_all.unwrap_or(false) { 1 } else { 0 };
+    let mut editable =  if edit_form.editable_for_all.unwrap_or(false) { 1 } else { 0 };
     let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
         .bind(user_id)
         .fetch_optional(&**pool)
@@ -110,9 +110,11 @@ pub async fn edit_page(
         .unwrap_or(None)
         .map(|row| row.get("editable_for_all"))
         .unwrap_or(0);
-
     if username != author && db_editable != 1 {
         return CreatePageResponse::Status(Status::Forbidden);
+    }
+    if username != author && db_editable != editable {
+        editable = db_editable;
     }
     let title = edit_form.title.trim();
     let content = edit_form.content.trim();

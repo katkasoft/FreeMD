@@ -30,14 +30,16 @@
         <input type="text" name="title" id="title-input" placeholder="Title" value="{{#if title}}{{title}}{{/if}}" required>
         <textarea name="content" id="content" placeholder="Content (markdown)">{{#if content}}{{content}}{{/if}}</textarea>
         <div id="preview" class="content"></div>
-        <div class="article-settings">
-            <h3>Article Settings</h3>
-            <label class="checkbox-container">
-                <input type="checkbox" name="editable_for_all" id="editable-for-all" {{#if editable_for_all}}checked{{/if}}>
-                <span class="checkmark"></span>
-                Editable for all
-            </label>
-        </div>
+        {{#if is_author}}
+            <div class="article-settings">
+                <h3>Article Settings</h3>
+                <label class="checkbox-container">
+                    <input type="checkbox" name="editable_for_all" id="editable-for-all" {{#if editable_for_all}}checked{{/if}}>
+                    <span class="checkmark"></span>
+                    Editable for all
+                </label>
+            </div>
+        {{/if}}
         <p id="error" style="color: red;">{{ error }}</p>
         <button type="submit">Submit</button>
     </form>

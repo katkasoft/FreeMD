@@ -71,7 +71,30 @@ pub fn new_page(_user: AuthenticatedUser) -> Template {
 }
 
 #[get("/edit?<id>")]
-pub async fn edit(id: i64, pool: &State<DbPool>, _user: AuthenticatedUser) -> Template {
+pub async fn edit(id: i64, pool: &State<DbPool>, user: AuthenticatedUser) -> UserResponse {
+    let user_id = user.id;
+    let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
+        .bind(user_id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("username"));
+    let author: Option<String> = sqlx::query("SELECT author FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("author"));
+    let db_editable: i32 = sqlx::query("SELECT editable_for_all FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .map(|row| row.get("editable_for_all"))
+        .unwrap_or(0);
+    if username != author && db_editable != 1 {
+        return UserResponse::Status(Status::Forbidden);
+    }
     let row = sqlx::query("SELECT id, title, content FROM articles WHERE id = ?")
         .bind(id)
         .fetch_one(&**pool)
@@ -84,12 +107,15 @@ pub async fn edit(id: i64, pool: &State<DbPool>, _user: AuthenticatedUser) -> Te
         content: row.get("content"),
     };
 
-    Template::render("editor", context! { 
-        edit: true, 
-        id: article.id, 
-        title: article.title, 
-        content: article.content 
-    })
+    UserResponse::Template(
+        Template::render("editor", context! { 
+            edit: true, 
+            id: article.id, 
+            title: article.title, 
+            content: article.content,
+            is_author: username == author
+        })
+    )
 }
 
 #[get("/upload")]
