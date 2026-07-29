@@ -1,15 +1,17 @@
 form {
     display: grid;
     grid-template-columns: 1fr 1fr; 
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr auto auto auto;
     gap: 20px;
     max-width: 95vw; 
     margin: 0 auto;
-    height: calc(100vh - 120px); 
+    min-height: calc(100vh - 120px); 
+    padding-bottom: 40px;
 }
 
 #title-input {
     grid-column: 1 / span 2;
+    grid-row: 1;
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
@@ -30,6 +32,7 @@ form {
     resize: none;
     font-family: 'Fira Code', monospace;
     font-size: 1rem;
+    height: 100%;
 }
 
 #preview {
@@ -40,11 +43,28 @@ form {
     border-radius: 8px;
     background: var(--bg);
     overflow-y: auto;
+    height: 100%;
+}
+
+.article-settings {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 0;
+}
+
+#error {
+    grid-column: 1 / span 2;
+    grid-row: 4;
+    margin: 0;
 }
 
 button[type="submit"] {
     grid-column: 1 / span 2;
-    grid-row: 3;
+    grid-row: 5;
     background: var(--accent);
     color: white;
     border: none;
@@ -82,4 +102,59 @@ button[type="submit"]:hover {
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.article-settings h3 {
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text);
+    user-select: none;
+}
+
+.checkbox-container input[type="checkbox"] {
+    appearance: none;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.checkbox-container input[type="checkbox"]::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em var(--accent);
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 18%, 80% 0%, 43% 62%);
+}
+
+.checkbox-container input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: var(--surface);
+    border-color: var(--accent);
+}
+
+.checkbox-container:hover input[type="checkbox"] {
+    border-color: var(--accent);
 }
