@@ -134,11 +134,11 @@ pub async fn edit_page(
             id: id
         }));
     }
-    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ?    WHERE id = ?")
+    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ? WHERE id = ?")
         .bind(title)
         .bind(content)
-        .bind(id)
         .bind(editable)
+        .bind(id)
         .execute(&**pool)
         .await;
     match result {
