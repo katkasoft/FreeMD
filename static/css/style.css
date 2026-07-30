@@ -35,6 +35,7 @@ header {
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 2px;
+    cursor: pointer;
 }
 
 #header-right {
@@ -71,27 +72,33 @@ header {
     opacity: 0.8;
 }
 
-#articles {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.article-card {
-    background: var(--surface);
+.header-btn-upload {
+    background-color: var(--surface);
     border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 8px;
-    transition: transform 0.2s;
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
-.article-card:hover {
-    transform: translateY(-5px);
+.header-btn-upload:hover {
+    background-color: var(--border);
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
-.content h1, .content h2 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 20px 0 10px; }
-.content p { margin-bottom: 15px; }
-.content code { background: #30363d; padding: 2px 5px; border-radius: 4px; }
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 
 #articles {
     display: grid;
@@ -100,7 +107,7 @@ header {
     margin-top: 20px;
 }
 
-.article-preview {
+.article-card, .article-preview {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -112,7 +119,7 @@ header {
     height: 100%;
 }
 
-.article-preview:hover {
+.article-card:hover, .article-preview:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
     border-color: var(--accent);
@@ -127,18 +134,20 @@ header {
     line-height: 1.4;
 }
 
-.article-preview p {
-    color: var(--text);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    opacity: 0.85;
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    max-height: 4.8em;
+.content h1, .content h2 { 
+    border-bottom: 1px solid var(--border); 
+    padding-bottom: 10px; 
+    margin: 20px 0 10px; 
+}
+
+.content p { 
+    margin-bottom: 15px; 
+}
+
+.content code { 
+    background: #30363d; 
+    padding: 2px 5px; 
+    border-radius: 4px; 
 }
 
 #no-articles {

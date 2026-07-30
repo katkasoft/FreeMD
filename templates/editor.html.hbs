@@ -33,7 +33,19 @@
         {{#if is_author}}
             <div class="article-settings">
                 <h3>Article Settings</h3>
-                <label class="checkbox-container">
+                <label for="visibility-select">Visibility:</label>
+                <select name="visibility" id="visibility-select">
+                    <option value="public" {{#if (eq visibility "public")}}selected{{/if}}>Public (Everyone)</option>
+                    <option value="private" {{#if (eq visibility "private")}}selected{{/if}}>Private (Only me)</option>
+                    <option value="link" {{#if (eq visibility "link")}}selected{{/if}}>By secret link</option>
+                </select>
+                {{#if share_link}}
+                    <div class="share-link-container" style="margin-top: 10px;">
+                        <label>Secret link:</label>
+                        <input type="text" readonly value="{{share_link}}" onclick="this.select();" style="width: 100%; padding: 5px;">
+                    </div>
+                {{/if}}
+                <label class="checkbox-container" style="margin-top: 15px;">
                     <input type="checkbox" name="editable_for_all" id="editable-for-all" {{#if editable}}checked{{/if}}>
                     <span class="checkmark"></span>
                     Editable for all
