@@ -113,7 +113,8 @@ pub async fn edit(id: i64, pool: &State<DbPool>, user: AuthenticatedUser) -> Use
             id: article.id, 
             title: article.title, 
             content: article.content,
-            is_author: username == author
+            is_author: username == author,
+            editable: db_editable
         })
     )
 }
