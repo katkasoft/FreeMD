@@ -97,18 +97,18 @@ pub async fn edit(id: i64, pool: &State<DbPool>, user: AuthenticatedUser) -> Use
     if username != author && db_editable != 1 {
         return UserResponse::Status(Status::Forbidden);
     }
-    let row = sqlx::query("SELECT id, title, content FROM articles WHERE id = ?")
+    let row = sqlx::query("SELECT id, title, content, visibility, share_link FROM articles WHERE id = ?")
         .bind(id)
         .fetch_one(&**pool)
         .await
         .expect("Error when getting article");
-
     let article = Article {
         id: row.get("id"),
         title: row.get("title"),
         content: row.get("content"),
     };
-
+    let visibility: String = row.get("visibility");
+    let share_link: Option<String> = row.get("share_link");
     UserResponse::Template(
         Template::render("editor", context! { 
             edit: true, 
@@ -116,7 +116,9 @@ pub async fn edit(id: i64, pool: &State<DbPool>, user: AuthenticatedUser) -> Use
             title: article.title, 
             content: article.content,
             is_author: username == author,
-            editable: db_editable
+            editable: db_editable,
+            visibility: visibility,
+            share_link: share_link
         })
     )
 }
