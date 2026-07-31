@@ -7,12 +7,14 @@ use rocket::State;
 use crate::db::DbPool;
 use crate::user::AuthenticatedUser;
 use sqlx::Row;
+use uuid::Uuid;
 
 #[derive(FromForm)]
 pub struct NewPage<'r> {
     pub title: &'r str,
     pub content: &'r str,
-    pub editable_for_all: Option<bool>
+    pub editable_for_all: Option<bool>,
+    pub visibility: &'r str,
 }
 
 #[derive(FromForm)]
@@ -44,14 +46,28 @@ pub async fn create_page(
     let title = page_form.title.trim();
     let content = page_form.content.trim();
     let editable =  if page_form.editable_for_all.unwrap_or(false) { 1 } else { 0 };
+    let visibility = match page_form.visibility {
+        "public" | "private" | "link" => page_form.visibility,
+        _ => return CreatePageResponse::Status(Status::BadRequest),
+    };
     if title.is_empty() || content.is_empty() {
-        return CreatePageResponse::Template(Template::render("editor", context! { 
-            error: "Not all fields are filled in" 
+        return CreatePageResponse::Template(Template::render("editor", context! {
+            error: "Not all fields are filled in",
+            title: title,
+            content: content,
+            visibility: visibility,
+            editable: editable,
+            is_author: true
         }));
     }
     if title.len() > 200 || content.len() > 100000 {
         return CreatePageResponse::Template(Template::render("editor", context! { 
-            error: "Too much text! Limits: 200 chars max for title and 100000 for content" 
+            error: "Too much text! Limits: 200 chars max for title and 100000 for content",
+            title: title,
+            content: content,
+            visibility: visibility,
+            editable: editable,
+            is_author: true
         }));
     }
     let id: i64 = user.id;
@@ -62,21 +78,52 @@ pub async fn create_page(
     let username: String = match user_row {
         Ok(Some(row)) => row.get("username"),
         _ => return CreatePageResponse::Template(Template::render("editor", context! {
-            error: "Internal server error"
+            error: "Internal server error",
+            title: title,
+            content: content,
+            visibility: visibility,
+            editable: editable,
+            is_author: true
         })),
     };
-    let result = sqlx::query("INSERT INTO articles (title, content, author, editable_for_all) VALUES (?, ?, ?, ?)")
+    let share_link = if page_form.visibility == "link" {
+        Some(Uuid::new_v4().to_string())
+    } else {
+        None
+    };
+    let result = sqlx::query("INSERT INTO articles (title, content, author, editable_for_all, visibility, share_link) VALUES (?, ?, ?, ?, ?, ?)")
         .bind(title)
         .bind(content)
         .bind(&username)
         .bind(editable)
+        .bind(visibility)
+        .bind(&share_link)
         .execute(&**pool)
         .await;
     match result {
-        Ok(_) => CreatePageResponse::Redirect(Redirect::to(uri!("/"))),
+        Ok(_) => {
+            if let Some(link) = share_link {
+                let full_link = format!("/article/share/{}", link);
+                CreatePageResponse::Template(Template::render("editor", context! {
+                    share_link: full_link,
+                    is_author: true,
+                    title: title,
+                    content: content,
+                    visibility: visibility,
+                    editable: editable
+                }))
+            } else {
+                CreatePageResponse::Redirect(Redirect::to(uri!("/")))
+            }
+        },
         Err(e) => {
             CreatePageResponse::Template(Template::render("editor", context! { 
-                error: format!("Internal server error: {}", e) 
+                error: format!("Internal server error: {}", e),
+                is_author: true,
+                title: title,
+                content: content,
+                visibility: visibility,
+                editable: editable
             }))
         }
     }

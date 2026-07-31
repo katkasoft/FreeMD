@@ -16,14 +16,16 @@ pub async fn init_db() -> DbPool {
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS articles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            score INTEGER NOT NULL DEFAULT 0,
-            author TEXT NOT NULL,
-            editable_for_all INTEGER NOT NULL DEFAULT 0
-        );"
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        author TEXT NOT NULL,
+        score INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        editable_for_all INTEGER NOT NULL DEFAULT 0,
+        visibility TEXT NOT NULL DEFAULT 'public',
+        share_link TEXT UNIQUE
+    );"
     )
     .execute(&pool)
     .await

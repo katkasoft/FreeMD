@@ -67,7 +67,9 @@ pub async fn index(pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
 
 #[get("/new")]
 pub fn new_page(_user: AuthenticatedUser) -> Template {
-    Template::render("editor", context! {})
+    Template::render("editor", context! {
+        is_author: true
+    })
 }
 
 #[get("/edit?<id>")]
