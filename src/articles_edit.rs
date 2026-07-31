@@ -22,7 +22,8 @@ pub struct EditPage<'r> {
     pub title: &'r str,
     pub content: &'r str,
     pub id: i64,
-    pub editable_for_all: Option<bool>
+    pub editable_for_all: Option<bool>,
+    pub visibility: &'r str,
 }
 
 #[derive(FromForm)]
@@ -138,6 +139,10 @@ pub async fn edit_page(
     let user_id = user.id;
     let id = edit_form.id;
     let mut editable =  if edit_form.editable_for_all.unwrap_or(false) { 1 } else { 0 };
+    let visibility = match edit_form.visibility {
+        "public" | "private" | "link" => edit_form.visibility,
+        _ => return CreatePageResponse::Status(Status::BadRequest),
+    };
     let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
         .bind(user_id)
         .fetch_optional(&**pool)
@@ -157,10 +162,11 @@ pub async fn edit_page(
         .unwrap_or(None)
         .map(|row| row.get("editable_for_all"))
         .unwrap_or(0);
-    if username != author && db_editable != 1 {
+    let is_author = username == author;
+    if !is_author && db_editable != 1 {
         return CreatePageResponse::Status(Status::Forbidden);
     }
-    if username != author && db_editable != editable {
+    if !is_author && db_editable != editable {
         editable = db_editable;
     }
     let title = edit_form.title.trim();
@@ -171,7 +177,10 @@ pub async fn edit_page(
             edit: true,
             title: title,
             content: content,
-            id: id
+            id: id,
+            editable: editable,
+            is_author: is_author,
+            visibility: visibility
         }));
     }
     if title.len() > 200 || content.len() > 100000 {
@@ -180,25 +189,60 @@ pub async fn edit_page(
             edit: true,
             title: title,
             content: content,
-            id: id
+            id: id,
+            editable: editable,
+            is_author: is_author,
+            visibility: visibility
         }));
     }
-    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ? WHERE id = ?")
+    let existing_link: Option<String> = sqlx::query("SELECT share_link FROM articles WHERE id = ?")
+        .bind(id)
+        .fetch_optional(&**pool)
+        .await
+        .unwrap_or(None)
+        .and_then(|row| row.get("share_link"));
+    let share_link = match edit_form.visibility {
+        "link" => {
+            Some(existing_link.unwrap_or_else(|| Uuid::new_v4().to_string()))
+        },
+        _ => None,
+    };
+    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ?, visibility = ?, share_link = ? WHERE id = ?")
         .bind(title)
         .bind(content)
         .bind(editable)
+        .bind(visibility)
+        .bind(&share_link)
         .bind(id)
         .execute(&**pool)
         .await;
     match result {
-        Ok(_) => CreatePageResponse::Redirect(Redirect::to(uri!("/"))),
+        Ok(_) => {
+            if let Some(link) = share_link {
+                CreatePageResponse::Template(Template::render("editor", context! { 
+                    edit: true,
+                    title: title,
+                    content: content,
+                    id: id,
+                    editable: editable,
+                    is_author: is_author,
+                    visibility: visibility,
+                    share_link: link
+                }))
+            } else {
+                CreatePageResponse::Redirect(Redirect::to(uri!("/")))
+            }
+        },
         Err(e) => {
             CreatePageResponse::Template(Template::render("editor", context! { 
                 error: format!("Internal server error: {}", e),
                 edit: true,
                 title: title,
                 content: content,
-                id: id
+                id: id,
+                editable: editable,
+                is_author: is_author,
+                visibility: visibility
             }))
         }
     }
