@@ -177,3 +177,32 @@ button[type="submit"]:hover {
 .checkbox-container:hover input[type="checkbox"] {
     border-color: var(--accent);
 }
+
+.tag-container {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tag-container label {
+    font-size: 0.95rem;
+    color: var(--text);
+}
+
+.tag-container input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.tag-container input[type="text"]:focus {
+    border-color: var(--accent);
+}
