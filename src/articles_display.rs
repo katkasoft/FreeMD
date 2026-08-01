@@ -65,7 +65,7 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
             let login = cookies.get_private("user_id").is_some();
             let username = get_current_username(pool.inner(), cookies).await;
             let is_author = username.as_deref() == Some(article.author.as_str());
-            if article.visibility == "private" && !is_author {
+            if (article.visibility == "private" || article.visibility == "link") && !is_author {
                 return Err(Status::Forbidden)
             }
             Ok(Template::render("article", context! {

@@ -66,7 +66,7 @@ pub async fn logout(_user: AuthenticatedUser, cookies: &CookieJar<'_>) -> Redire
     Redirect::to(uri!("/"))
 }
 
-#[post("/delete")]
+#[post("/delete_account")]
 pub async fn delete(user: AuthenticatedUser, cookies: &CookieJar<'_>, pool: &State<DbPool>) -> RedirectOrStatus {
     let id = user.id;
     let result = sqlx::query("DELETE FROM users WHERE id = ?")

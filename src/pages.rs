@@ -35,7 +35,15 @@ async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<
 
 #[get("/")]
 pub async fn index(pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
-    let rows = sqlx::query("SELECT id, title, content FROM articles ORDER BY created_at DESC")
+    let login = cookies.get_private("user_id").is_some();
+    let username = get_current_username(&**pool, cookies).await;
+    let current_user = username.clone().unwrap_or_default();
+    let rows = sqlx::query(
+        "SELECT id, title, content FROM articles 
+         WHERE visibility = 'public' OR (visibility IN ('private', 'link') AND author = ?) 
+         ORDER BY created_at DESC"
+    )
+        .bind(&current_user)
         .fetch_all(&**pool)
         .await
         .expect("Error while getting articles");
@@ -55,9 +63,6 @@ pub async fn index(pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
             }
         })
         .collect();
-    let login = cookies.get_private("user_id").is_some();
-    let username = get_current_username(&**pool, cookies).await;
-    
     Template::render("index", context! { 
         rows: articles, 
         login: login, 
