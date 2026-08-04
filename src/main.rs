@@ -30,7 +30,8 @@ async fn rocket() -> _ {
             pages::user,
             pages::account_settings,
             pages::change_password_page,
-            articles_display::article_shared
+            articles_display::article_shared,
+            search::search_by_tag
         ])
         .mount("/api", routes![
             articles_edit::create_page,

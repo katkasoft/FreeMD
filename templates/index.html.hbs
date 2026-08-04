@@ -7,7 +7,11 @@
         {{#if query}}
             {{query}} - search in FreeMD
         {{else}}
-            FreeMD
+            {{#if tag}}
+                Articles with {{tag}} tag - FreeMD
+            {{else}}
+                FreeMD
+            {{/if}}
         {{/if}}
     </title>
     <link rel="stylesheet" href="/static/css/style.css">
