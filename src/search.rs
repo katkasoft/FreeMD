@@ -25,14 +25,19 @@ async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<
 
 #[get("/search?<q>")]
 pub async fn search(q: String, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Template {
+    let login = cookies.get_private("user_id").is_some();
+    let username = get_current_username(&**pool, cookies).await;
+    let current_user = username.clone().unwrap_or_default();
     let search_term = format!("%{}%", q.to_lowercase());
     let rows = sqlx::query(
         "SELECT id, title, content FROM articles \
-        WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ? \
+        WHERE (LOWER(title) LIKE ? OR LOWER(content) LIKE ?) \
+        AND (visibility = 'public' OR (visibility IN ('private', 'link') AND author = ?)) \
         ORDER BY created_at DESC"
     )
         .bind(&search_term)
         .bind(&search_term)
+        .bind(current_user)
         .fetch_all(&**pool)
         .await
         .expect("Database error");
@@ -52,9 +57,6 @@ pub async fn search(q: String, pool: &State<DbPool>, cookies: &CookieJar<'_>) ->
             }
         })
         .collect();
-    let login = cookies.get_private("user_id").is_some();
-    let username = get_current_username(&**pool, cookies).await;
-
     Template::render("index", context! { 
         rows: articles, 
         query: q,
