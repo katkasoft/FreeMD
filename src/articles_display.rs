@@ -17,7 +17,8 @@ struct Article {
     author: String,
     editable_for_all: i32,
     visibility: String,
-    share_link: Option<String>
+    share_link: Option<String>,
+    tags: Option<String>
 }
 
 #[derive(Debug, Serialize)]
@@ -40,7 +41,7 @@ async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<
 
 #[get("/article/<id>")]
 pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
-    let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link FROM articles WHERE id = ?")
+    let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link, tags FROM articles WHERE id = ?")
         .bind(id)
         .fetch_optional(pool.inner())
         .await;
@@ -68,6 +69,12 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
             if (article.visibility == "private" || article.visibility == "link") && !is_author {
                 return Err(Status::Forbidden)
             }
+            let tags = article.tags.unwrap_or_default();
+            let tags_vec: Vec<String> = tags
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
             Ok(Template::render("article", context! {
                 title: article.title,
                 content: article.content,
@@ -78,7 +85,8 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 is_author: is_author,
                 id: article_id,
                 comments: comments,
-                is_editable: article.editable_for_all == 1 || is_author
+                is_editable: article.editable_for_all == 1 || is_author,
+                tags: tags_vec
             }))
         }
         Ok(None) => {

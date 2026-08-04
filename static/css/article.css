@@ -339,3 +339,27 @@
     border-radius: 6px;
     margin-top: 4px;
 }
+
+.article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.tag-badge {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.tag-badge:hover {
+    border-color: var(--accent);
+    background: var(--surface);
+}
