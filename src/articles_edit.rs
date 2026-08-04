@@ -15,6 +15,7 @@ pub struct NewPage<'r> {
     pub content: &'r str,
     pub editable_for_all: Option<bool>,
     pub visibility: &'r str,
+    pub tags: Option<&'r str>
 }
 
 #[derive(FromForm)]
@@ -24,6 +25,7 @@ pub struct EditPage<'r> {
     pub id: i64,
     pub editable_for_all: Option<bool>,
     pub visibility: &'r str,
+    pub tags: Option<&'r str>
 }
 
 #[derive(FromForm)]
@@ -51,6 +53,15 @@ pub async fn create_page(
         "public" | "private" | "link" => page_form.visibility,
         _ => return CreatePageResponse::Status(Status::BadRequest),
     };
+    let tags = page_form.tags
+        .map(|s| {
+            s.split(',')
+                .map(|t| t.trim())
+                .filter(|t| !t.is_empty())
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+    .unwrap_or_default();
     if title.is_empty() || content.is_empty() {
         return CreatePageResponse::Template(Template::render("editor", context! {
             error: "Not all fields are filled in",
@@ -58,7 +69,8 @@ pub async fn create_page(
             content: content,
             visibility: visibility,
             editable: editable,
-            is_author: true
+            is_author: true,
+            tags: page_form.tags
         }));
     }
     if title.len() > 200 || content.len() > 100000 {
@@ -68,7 +80,8 @@ pub async fn create_page(
             content: content,
             visibility: visibility,
             editable: editable,
-            is_author: true
+            is_author: true,
+            tags: page_form.tags
         }));
     }
     let id: i64 = user.id;
@@ -84,7 +97,8 @@ pub async fn create_page(
             content: content,
             visibility: visibility,
             editable: editable,
-            is_author: true
+            is_author: true,
+            tags: page_form.tags
         })),
     };
     let share_link = if page_form.visibility == "link" {
@@ -92,13 +106,14 @@ pub async fn create_page(
     } else {
         None
     };
-    let result = sqlx::query("INSERT INTO articles (title, content, author, editable_for_all, visibility, share_link) VALUES (?, ?, ?, ?, ?, ?)")
+    let result = sqlx::query("INSERT INTO articles (title, content, author, editable_for_all, visibility, share_link, tags) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .bind(title)
         .bind(content)
         .bind(&username)
         .bind(editable)
         .bind(visibility)
         .bind(&share_link)
+        .bind(tags)
         .execute(&**pool)
         .await;
     match result {
@@ -111,7 +126,8 @@ pub async fn create_page(
                     title: title,
                     content: content,
                     visibility: visibility,
-                    editable: editable
+                    editable: editable,
+                    tags: page_form.tags
                 }))
             } else {
                 CreatePageResponse::Redirect(Redirect::to(uri!("/")))
@@ -124,7 +140,8 @@ pub async fn create_page(
                 title: title,
                 content: content,
                 visibility: visibility,
-                editable: editable
+                editable: editable,
+                tags: page_form.tags
             }))
         }
     }
@@ -143,6 +160,15 @@ pub async fn edit_page(
         "public" | "private" | "link" => edit_form.visibility,
         _ => return CreatePageResponse::Status(Status::BadRequest),
     };
+    let tags = edit_form.tags
+        .map(|s| {
+            s.split(',')
+                .map(|t| t.trim())
+                .filter(|t| !t.is_empty())
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+    .unwrap_or_default();
     let username: Option<String> = sqlx::query("SELECT username FROM users WHERE id = ?")
         .bind(user_id)
         .fetch_optional(&**pool)
@@ -207,12 +233,13 @@ pub async fn edit_page(
         },
         _ => None,
     };
-    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ?, visibility = ?, share_link = ? WHERE id = ?")
+    let result = sqlx::query("UPDATE articles SET title = ?, content = ?, editable_for_all = ?, visibility = ?, share_link = ?, tags = ? WHERE id = ?")
         .bind(title)
         .bind(content)
         .bind(editable)
         .bind(visibility)
         .bind(&share_link)
+        .bind(tags)
         .bind(id)
         .execute(&**pool)
         .await;
