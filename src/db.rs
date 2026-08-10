@@ -25,6 +25,7 @@ pub async fn init_db() -> DbPool {
         editable_for_all INTEGER NOT NULL DEFAULT 0,
         visibility TEXT NOT NULL DEFAULT 'public',
         share_link TEXT UNIQUE,
+        views INTENGER NOT NULL DEFAULT 0,
         tags TEXT
     );"
     )
@@ -41,7 +42,7 @@ pub async fn init_db() -> DbPool {
         );"
     )
     .execute(&pool)
-    .await
+    .await  
     .expect("Error while creating users table");
 
     sqlx::query(

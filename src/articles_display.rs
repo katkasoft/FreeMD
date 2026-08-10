@@ -18,7 +18,8 @@ struct Article {
     editable_for_all: i32,
     visibility: String,
     share_link: Option<String>,
-    tags: Option<String>
+    tags: Option<String>,
+    views: i64
 }
 
 #[derive(Debug, Serialize)]
@@ -41,7 +42,7 @@ async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<
 
 #[get("/article/<id>")]
 pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
-    let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link, tags FROM articles WHERE id = ?")
+    let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link, tags, views FROM articles WHERE id = ?")
         .bind(id)
         .fetch_optional(pool.inner())
         .await;
@@ -75,6 +76,12 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .collect();
+            if let Err(e) = sqlx::query("UPDATE articles SET views = views + 1 WHERE id = ?")
+                .bind(id)
+                .execute(&**pool)
+                .await {
+                eprintln!("Error adding view: {}", e);
+            }
             Ok(Template::render("article", context! {
                 title: article.title,
                 content: article.content,
@@ -86,7 +93,8 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 id: article_id,
                 comments: comments,
                 is_editable: article.editable_for_all == 1 || is_author,
-                tags: tags_vec
+                tags: tags_vec,
+                views: article.views
             }))
         }
         Ok(None) => {
@@ -101,7 +109,7 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
 
 #[get("/article/share/<share_link>")]
 pub async fn article_shared(share_link: String, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
-    let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link FROM articles WHERE share_link = ?")
+    let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link, views FROM articles WHERE share_link = ?")
         .bind(&share_link)
         .fetch_optional(pool.inner())
         .await;
@@ -129,6 +137,12 @@ pub async fn article_shared(share_link: String, pool: &State<DbPool>, cookies: &
             if article.visibility == "private" && !is_author {
                 return Err(Status::Forbidden)
             }
+            if let Err(e) = sqlx::query("UPDATE articles SET views = views + 1 WHERE id = ?")
+                .bind(article_id)
+                .execute(&**pool)
+                .await {
+                eprintln!("Error adding view: {}", e);
+            }
             Ok(Template::render("article", context! {
                 title: article.title,
                 content: article.content,
@@ -139,7 +153,8 @@ pub async fn article_shared(share_link: String, pool: &State<DbPool>, cookies: &
                 is_author: is_author,
                 id: article_id,
                 comments: comments,
-                is_editable: article.editable_for_all == 1 || is_author
+                is_editable: article.editable_for_all == 1 || is_author,
+                views: article.views
             }))
         }
         Ok(None) => {

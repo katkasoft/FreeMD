@@ -363,3 +363,27 @@
     border-color: var(--accent);
     background: var(--surface);
 }
+
+.article-views {
+    display: inline-block;
+    margin-left: 16px;
+    font-size: 0.9rem;
+    color: #8b949e;
+    background: var(--bg);
+    padding: 2px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-weight: 500;
+}
+
+.article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.article-meta > span {
+    display: inline-flex;
+    align-items: center;
+}
