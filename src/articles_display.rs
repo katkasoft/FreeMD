@@ -40,6 +40,28 @@ async fn get_current_username(pool: &DbPool, cookies: &CookieJar<'_>) -> Option<
     row.map(|r| r.get("username"))
 }
 
+async fn record_view(pool: &DbPool, user_id: i64, article_id: i32) {
+    let insert_result = sqlx::query("INSERT OR IGNORE INTO views (user_id, article_id) VALUES (?, ?)")
+        .bind(user_id)
+        .bind(article_id)
+        .execute(pool)
+        .await;
+    match insert_result {
+        Ok(result) => {
+            if result.rows_affected() > 0 {
+                let _ = sqlx::query("UPDATE articles SET views = views + 1 WHERE id = ?")
+                    .bind(article_id)
+                    .execute(pool)
+                    .await
+                    .map_err(|e| eprintln!("Failed to increment views: {}", e));
+            }
+        }
+        Err(e) => {
+            eprintln!("Database error while recording view: {}", e);
+        }
+    }
+}
+
 #[get("/article/<id>")]
 pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> Result<Template, Status> {
     let result = sqlx::query_as::<_, Article>("SELECT id, title, content, score, author, editable_for_all, visibility, share_link, tags, views FROM articles WHERE id = ?")
@@ -76,11 +98,12 @@ pub async fn article(id: u32, pool: &State<DbPool>, cookies: &CookieJar<'_>) -> 
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .collect();
-            if let Err(e) = sqlx::query("UPDATE articles SET views = views + 1 WHERE id = ?")
-                .bind(id)
-                .execute(&**pool)
-                .await {
-                eprintln!("Error adding view: {}", e);
+            if login {
+                let user_id: Option<i64> = cookies.get_private("user_id")
+                    .and_then(|cookie| cookie.value().parse().ok());
+                if let Some(uid) = user_id {
+                    record_view(&**pool, uid, article.id).await;
+                }
             }
             Ok(Template::render("article", context! {
                 title: article.title,
@@ -137,11 +160,12 @@ pub async fn article_shared(share_link: String, pool: &State<DbPool>, cookies: &
             if article.visibility == "private" && !is_author {
                 return Err(Status::Forbidden)
             }
-            if let Err(e) = sqlx::query("UPDATE articles SET views = views + 1 WHERE id = ?")
-                .bind(article_id)
-                .execute(&**pool)
-                .await {
-                eprintln!("Error adding view: {}", e);
+            if login {
+                let user_id: Option<i64> = cookies.get_private("user_id")
+                    .and_then(|cookie| cookie.value().parse().ok());
+                if let Some(uid) = user_id {
+                    record_view(&**pool, uid, article.id).await;
+                }
             }
             Ok(Template::render("article", context! {
                 title: article.title,
